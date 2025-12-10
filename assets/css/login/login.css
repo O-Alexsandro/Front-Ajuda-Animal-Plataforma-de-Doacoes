@@ -1,0 +1,155 @@
+:root {
+    --primary-color: #FF6B35;
+    --secondary-color: #4ECDC4;
+    --background-color: #f5f5f5;
+    --text-color: #333;
+    --border: #d3cfcd;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    background-image: url(/assets/img/background_login.png);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+#header-login {
+    width: 100%;
+    height: 100vh;
+    position: relative;
+}
+
+#header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 10px 50px;
+    border-bottom: 1px solid var(--border);
+}
+
+#header > img {
+    width: 70px;
+    height: 70px;
+    margin-left: 200px;
+}
+
+#header > button {
+    width: 10%;
+    padding: 12px;
+    border-radius: 15px;
+    border: none;
+    outline: none;
+    background-color: var(--primary-color);
+    color: var(--background-color);
+    font-size: 1rem;
+    font-weight: 500;
+    margin-right: 200px;
+
+}
+
+#header > button:hover {
+    background-color: #ff6b35cb;
+}
+
+#form-login {
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--border);
+    width: 500px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: var(--background-color);
+}
+
+#form-login > h2 {
+    text-align: center;
+    color: var(--text-color);
+    margin: 20px;
+    font-size: 2rem;
+}
+
+#form-login > .description {
+    text-align: center;
+    color: var(--text-color);
+    margin-bottom: 10px;
+    font-size: 1.2rem;
+}
+
+#label-input {
+    display: flex;
+    flex-direction:column;
+    justify-content: center;
+    margin: 0 auto;
+    width: 90%;
+}
+
+.label{
+    color: var(--text-color);
+    font-size: 1.1rem;
+    margin-top: 25px;
+    margin-bottom: 5px;
+}
+
+.input {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 15px;
+    border: 1px solid var(--border); 
+    outline: none;
+}
+
+.input:hover,
+.input:focus {
+    border: 1px solid var(--primary-color);
+    outline: none;
+}
+
+#button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+    width: 90%;
+    margin-top: 20px;
+}
+
+#button > button {
+    width: 100%;
+    padding: 15px;
+    border-radius: 15px;
+    border: none;
+    outline: none;
+    background-color: var(--primary-color);
+    color: var(--background-color);
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+#button > button:hover {
+    background-color: #ff6b35cb;
+}
+
+.final {
+    text-align: center;
+    color: var(--text-color);
+    font-weight: 300;
+    margin: 20px;
+    font-size: 0.9rem;
+}
+
+a {
+    color: #FF6B35;
+    outline: none;
+    text-decoration: none;
+}
