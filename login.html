@@ -1,20 +1,21 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
     <link rel="stylesheet" href="/assets/css/login/login.css">
 </head>
+
 <body>
     <section id="header-login">
 
         <div id="header">
             <img src="/assets/img/logo.avif" alt="logo">
-            <button type="button">Registrar</button>
+            <button type="button" onclick="window.location.href='./cadastro.html'">Registrar</button>
         </div>
 
- 
         <form method="post" id="form-login">
             <h2>Bem vindo</h2>
             <h3 class="description">Faça seu login para continuar</h3>
@@ -23,17 +24,21 @@
                 <input class="input" type="email" id="email" name="email" placeholder="email@email.com" required>
 
                 <label class="label" for="password">Senha:</label>
-                <input class="input" type="password" id="password" name="password" placeholder="digite sua senha" required>
+                <input class="input" type="password" id="password" name="password" placeholder="digite sua senha"
+                    required>
             </div>
-
 
             <div id="button">
                 <button type="submit">Entrar</button>
             </div>
-            <h3 class="final">Não tem uma conta? <a href="">registre-se</a> </h3>
+            <h3 class="final">Não tem uma conta? <a href="./cadastro.html">registre-se</a> </h3>
         </form>
 
     </section>
 
+    <script src="/assets/js/login.js"></script>
+    <script src="/assets/js/config.js"></script>
+
 </body>
+
 </html>

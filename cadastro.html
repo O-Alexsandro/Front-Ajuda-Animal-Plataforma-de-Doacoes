@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registre-se</title>
+    <link rel="stylesheet" href="/assets/css/cadastro/cadastro.css">
+</head>
+
+<body>
+    <div id="principal">
+
+        <div id="header">
+            <img src="/assets/img/logo.avif" alt="logo">
+            <button type="button" onclick="window.location.href='./login.html'">Fazer login</button>
+        </div>
+
+        <div id="header-form">
+
+            <form method="post" id="form-login">
+                <h2>Crie uma conta</h2>
+                <h3>Junte-se à nós e comece a ajudar os animais.</h3>
+                <div id="label-input">
+                    <label class="label" for="email@email.com">Nome completo:</label>
+                    <input class="input" type="text" id="email" name="email" placeholder="digite seu nome completo"
+                        required>
+
+                    <label class="label" for="email@email.com">Email:</label>
+                    <input class="input" type="email" id="email2" name="email2" placeholder="digite seu email" required>
+
+                    <label class="label" for="password">Senha:</label>
+                    <input class="input" type="password" id="password" name="password" placeholder="digite sua senha"
+                        required>
+
+                    <label class="label" for="telefone">Telefone:</label>
+                    <input class="input" type="tel" id="telefone" name="telefone" placeholder="(00) 00000-0000"
+                        required>
+
+                    <label class="label" for="rua">Rua:</label>
+                    <input class="input" type="text" id="rua" name="rua" placeholder="digite sua rua" required>
+
+                    <label class="label" for="bairro">Bairro:</label>
+                    <input class="input" type="text" id="bairro" name="bairro" placeholder="digite seu bairro" required>
+
+
+                    <label class="label" for="cidade">Cidade:</label>
+                    <input class="input" type="text" id="cidade" name="cidade" placeholder="digite sua cidade" required>
+
+                    <label class="label" for="estado">Estado:</label>
+                    <input class="input" type="text" id="estado" name="estado" placeholder="digite seu estado" required>
+
+
+                    <label class="label">Tipo de conta</label>
+                    <div class="roles-group">
+                        <div class="role-option">
+                            <input class="role-checkbox" type="checkbox" id="isOng" name="roleOption" aria-describedby="isOng-desc">
+                            <label for="isOng" class="role-card" tabindex="0">
+                                <span class="role-paw" aria-hidden="true"><span class="role-dot" aria-hidden="true"></span></span>
+                                <div class="role-text">
+                                    <span class="role-title">ONG</span>
+                                    <span class="role-desc" id="isOng-desc">Eu como ONG, quero doar e receber doações</span>
+                                </div>
+                            </label>
+                        </div>
+
+                        <div class="role-option">
+                            <input class="role-checkbox" type="checkbox" id="isDoador" name="roleOption" aria-describedby="isDoador-desc">
+                            <label for="isDoador" class="role-card" tabindex="0">
+                                <span class="role-paw" aria-hidden="true"><span class="role-dot" aria-hidden="true"></span></span>
+                                <div class="role-text">
+                                    <span class="role-title">Doador</span>
+                                    <span class="role-desc" id="isDoador-desc">Eu como doador, quero somente doar itens</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    <p id="role-error" class="error-message" aria-live="polite" hidden>Por favor selecione ao menos uma opção.</p>
+                    <input type="hidden" id="role" name="role" value="ROLE_USUARIO">
+
+
+                    <div id="button">
+                        <button type="submit">Cadastrar</button>
+                    </div>
+
+                    <h3 class="final">Já tenho uma conta <a href="">Entrar</a> </h3>
+                </div>
+        </div>
+
+    </div>
+
+    <script src="/assets/js/config.js"></script>
+    <script src="/assets/js/cadastro.js"></script>
+</body>
+
+</html>
