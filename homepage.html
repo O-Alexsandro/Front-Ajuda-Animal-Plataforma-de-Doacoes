@@ -21,15 +21,15 @@
                     <button type="button" class="nav-btn">Doações</button>
                 </div>
                 <div class="nav-item">
-                    <img src="assets/img/homepage/heart.svg" alt="">
+                    <img src="assets/img/homepage/history.svg" alt="">
                     <button type="button" class="nav-btn">Histórico</button>
                 </div>
                 <div class="nav-item">
-                    <img src="assets/img/homepage/heart.svg" alt="">
+                    <img src="assets/img/homepage/add.svg" alt="">
                     <button type="button" class="nav-btn">Adicionar</button>
                 </div>
                 <div class="nav-item">
-                    <img src="assets/img/homepage/heart.svg" alt="">
+                    <img src="assets/img/homepage/user.svg" alt="">
                     <button type="button" class="nav-btn">Perfil</button>
                 </div>
                 <div class="nav-item">
@@ -51,12 +51,20 @@
                         <input type="search" placeholder="Localizar doações..." class="search-input" />
                     </div>
 
-                    <select class="select-control">
-                        <option>Todas as Categorias</option>
+                    <select id="category-select" class="select-control">
+                        <option value="">Todas as Categorias</option>
+                        <option value="racao">Ração</option>
+                        <option value="medicamentos">Medicamentos</option>
+                        <option value="acessorios">Acessórios</option>
+                        <option value="outros">Outros</option>
                     </select>
 
-                    <select class="select-control">
-                        <option>Todas as Condições</option>
+                    <select id="condition-select" class="select-control">
+                        <option value="">Todas as Condições</option>
+                        <option value="novo">Novo</option>
+                        <option value="usado">Usado</option>
+                        <option value="boas-condicoes">Em boas condições</option>
+
                     </select>
                 </div>
             </div>
