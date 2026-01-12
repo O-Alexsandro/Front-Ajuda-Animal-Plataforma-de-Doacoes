@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <link rel="stylesheet" href="/assets/css/homepage/homepage.css">
+    <script defer src="/assets/js/homepage.js"></script>
+</head>
+
+<body>
+    <div id="container">
+        <div id="header">
+            <img src="/assets/img/logo.avif" alt="logo">
+
+            <div id="header-buttons">
+
+                <div class="nav-item">
+                    <img src="assets/img/homepage/heart.svg" alt="">
+                    <button type="button" class="nav-btn">Doações</button>
+                </div>
+                <div class="nav-item">
+                    <img src="assets/img/homepage/heart.svg" alt="">
+                    <button type="button" class="nav-btn">Histórico</button>
+                </div>
+                <div class="nav-item">
+                    <img src="assets/img/homepage/heart.svg" alt="">
+                    <button type="button" class="nav-btn">Adicionar</button>
+                </div>
+                <div class="nav-item">
+                    <img src="assets/img/homepage/heart.svg" alt="">
+                    <button type="button" class="nav-btn">Perfil</button>
+                </div>
+                <div class="nav-item">
+                    <button type="button" class="logout-btn">Logout</button>
+                </div>
+            </div>
+        </div>
+
+        <main class="hero">
+            <div class="hero-inner">
+                <div class="hero-text">
+                    <h1>Doações Disponíveis</h1>
+                    <p class="subtitle">Navegue pelos itens disponíveis para doação</p>
+                </div>
+
+                <div class="hero-controls">
+                    <div class="search-wrap">
+                        <span class="search-icon">🔍</span>
+                        <input type="search" placeholder="Localizar doações..." class="search-input" />
+                    </div>
+
+                    <select class="select-control">
+                        <option>Todas as Categorias</option>
+                    </select>
+
+                    <select class="select-control">
+                        <option>Todas as Condições</option>
+                    </select>
+                </div>
+            </div>
+        </main>
+
+        <!-- Cards list -->
+        <section class="cards-wrap">
+            <div class="cards-inner" id="cards-container">
+                <!-- Cards will be injected here by JS -->
+            </div>
+        </section>
+
+    </div>
+
+    <script src="/assets/js/config.js"></script>
+
+</body>
+
+</html>
