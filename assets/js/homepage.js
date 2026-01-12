@@ -172,23 +172,18 @@ async function fetchDonations() {
   }
 }
 
-// View details: fetch detail endpoint, store in sessionStorage and navigate
+// View details: delegate to the dedicated actions module (if present)
 async function openDetails(item) {
-  const detailsUrl = `http://localhost:8080/doacoes/${encodeURIComponent(item.id)}`;
-  try {
-    const res = await fetch(detailsUrl);
-    if (res.ok) {
-      const details = await res.json();
-      sessionStorage.setItem('selectedDonation', JSON.stringify(details));
-    } else {
-      // still navigate even if fetch failed (details page can re-fetch)
-      console.warn('Details fetch failed with status', res.status);
+  if (window.openDonationDetails) {
+    try {
+      await window.openDonationDetails(item);
+      return;
+    } catch (err) {
+      console.warn('openDonationDetails failed, falling back to navigation', err);
     }
-  } catch (err) {
-    console.warn('Failed to fetch details:', err);
   }
 
-  // Navigate to details page (user will create it). Use query param for id.
+  // fallback: navigate with id (details page will attempt to fetch if needed)
   window.location.href = `/doacao-detalhes.html?id=${encodeURIComponent(item.id)}`;
 }
 

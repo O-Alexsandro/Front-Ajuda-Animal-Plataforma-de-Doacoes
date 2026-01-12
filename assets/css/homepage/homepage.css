@@ -323,3 +323,5 @@ body {
 @media (min-width: 901px) and (max-width: 1200px) {
     .cards-inner { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* Details page styles moved to /assets/css/doacao-detalhes.css */

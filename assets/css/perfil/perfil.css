@@ -1,0 +1,148 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+:root {
+    --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+    --primary-color: #FF6B35;
+    --secondary-color: #4ECDC4;
+    --background-color: #f5f5f5;
+    --text-color: #333;
+    --border: #d3cfcd;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-sans);
+}
+
+
+#header {
+    position: relative;
+    z-index: 20;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 10px 50px;
+    border-bottom: 1px solid var(--border);
+    background: #fff; /* keep header visually separated */
+} 
+
+#header > img {
+    width: 70px;
+    height: 70px;
+    margin-left: 30px;
+}
+
+#header-buttons {
+    display: flex;
+    gap: 18px;
+    margin-right: 30px;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px; /* expand hover area to include icon */
+    border-radius: 8px;
+    transition: background 150ms ease, transform 120ms ease;
+    cursor: pointer;
+}
+
+.nav-item .nav-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+    font-size: 0.95rem;
+    font-weight: 600;
+    padding: 6px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.nav-item img {
+    width: 20px;
+    height: 20px;
+}
+
+/* Apply hover to the whole container so it covers the icon + text */
+.nav-item:hover {
+    background: var(--secondary-color);
+    transform: translateY(-1px);
+}
+
+.nav-item:active { transform: translateY(0); }
+
+.logout-btn {
+    background: #fff;
+    border: 1px solid var(--border);
+    color: var(--text-color);
+    padding: 8px 14px;
+    border-radius: 24px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.logout-btn:hover {
+    background: #fafafa;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+/* ---------- Profile page styles ---------- */
+.profile-page {
+    display: flex;
+    justify-content: center;
+    padding: 40px 20px;
+    background: var(--background-color);
+    min-height: calc(100vh - 90px);
+}
+
+.profile-inner { width: 920px; max-width: calc(100% - 40px); }
+
+.profile-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 26px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.04);
+    border: 1px solid #f0eae6;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-header h2 { font-size: 1.25rem; color: var(--text-color); }
+.pill-ngo { background:#9eead1; color:#00685a; padding:6px 10px; border-radius:16px; font-weight:700; font-size:0.8rem; }
+
+.avatar-row { display:flex; gap:24px; align-items:flex-start; margin-top:18px; }
+.avatar-circle { width:84px; height:84px; border-radius:50%; background:#fff3ed; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 10px rgba(255,122,61,0.06); }
+
+.profile-form { flex:1; }
+.field { display:block; margin-bottom:12px; }
+.field-label { font-size:0.85rem; color:#444; margin-bottom:8px; }
+.field input, .field textarea { width:100%; padding:12px 14px; border:1px solid #eee; border-radius:10px; font-size:0.95rem; color:var(--text-color); background:#fff; }
+.field textarea { resize:vertical; min-height:80px; }
+
+.form-actions { margin-top:12px; }
+.btn-primary { width:100%; background: linear-gradient(180deg,#ff7a3d 0%,#ff6b35 100%); color:#fff; border:none; padding:12px 16px; border-radius:20px; font-weight:700; font-size:0.95rem; cursor:pointer; }
+.btn-primary:active { transform: translateY(1px); }
+
+/* small toast */
+.toast {
+    position: fixed; left: 50%; transform: translateX(-50%); bottom: 18px; background:#222; color:#fff; padding:10px 14px; border-radius:8px; font-size:0.95rem; opacity:0.95; z-index:1200;
+}
+
+@media (max-width:720px){
+    .avatar-row { flex-direction:column; gap:14px; }
+    .profile-inner { width:100%; }
+}
