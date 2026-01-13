@@ -35,7 +35,7 @@
                         return id;
                     }
 
-                    const rawId = payload.id || payload.userId || payload.usuarioId || payload._id || payload.codigo || null;
+                    const rawId = payload.USER_ID || payload.user_id || payload.id || payload.userId || payload.usuarioId || payload._id || payload.codigo || null;
                     if (rawId && /^\d+$/.test(String(rawId))){
                         localStorage.setItem('userId', String(rawId));
                         console.log('resolveUserId: using numeric id claim from token', rawId);

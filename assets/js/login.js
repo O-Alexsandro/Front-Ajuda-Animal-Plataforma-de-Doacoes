@@ -42,7 +42,7 @@ formLogin.addEventListener('submit', async (event) => {
                 if (payload.sub && /^\d+$/.test(String(payload.sub))){
                     localStorage.setItem('userId', String(payload.sub));
                 } else {
-                    let idClaim = payload.id || payload.userId || payload._id || payload.codigo || payload.email || payload.usuario || payload.sub;
+                    let idClaim = payload.USER_ID || payload.user_id || payload.id || payload.userId || payload._id || payload.codigo || payload.email || payload.usuario || payload.sub;
                     if (idClaim){
                         if (String(idClaim).includes('@')){
                             // backend should set numeric id in token 'sub' or 'id' claims; do not perform email lookups here
