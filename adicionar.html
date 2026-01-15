@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adicionar doação</title>
+    <link rel="stylesheet" href="assets/css/adicionar-doacao/adicionar-doacao.css">
+</head>
+
+<body>
+    <div id="container">
+        <div id="header">
+            <img src="/assets/img/logo.avif" alt="logo">
+
+            <div id="header-buttons">
+
+                <div class="nav-item" onclick="window.location.href='./homepage.html'">
+                    <img src="assets/img/homepage/heart.svg" alt="">
+                    <button type="button" class="nav-btn ">Doações</button>
+                </div>
+                <div class="nav-item" onclick="window.location.href='./historico.html'">
+                    <img src="assets/img/homepage/history.svg" alt="">
+                    <button type="button" class="nav-btn">Histórico</button>
+                </div>
+                <div class="nav-item" onclick="window.location.href='./adicionar.html'">
+                    <img src="assets/img/homepage/add.svg" alt="">
+                    <button type="button" class="nav-btn">Adicionar</button>
+                </div>
+                <div class="nav-item" onclick="window.location.href='./perfil.html'">
+                    <img src="assets/img/homepage/user.svg" alt="">
+                    <button type="button" class="nav-btn">Perfil</button>
+                </div>
+                <div class="nav-item">
+                    <button type="button" class="logout-btn">Logout</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <main class="add-donation">
+        <div class="form-card">
+            <h2>Criar Doação</h2>
+
+            <form id="donation-form" enctype="multipart/form-data">
+                <!-- Hidden user id (adjust dynamically in future) -->
+                <input type="hidden" name="usuarioId" value="1" />
+
+                <label class="form-row">
+                    <span class="label">Título</span>
+                    <input name="titulo" type="text" required placeholder="Título do item"/>
+                </label>
+
+                <label class="form-row">
+                    <span class="label">Descrição</span>
+                    <textarea name="descricao" rows="4" required placeholder="Descrição do item"></textarea>
+                </label>
+
+                <label class="form-row">
+                    <span class="label">Categoria</span>
+                    <select name="categoria" required>
+                        <option value="RACAO">Ração</option>
+                        <option value="MEDICAMENTOS">Medicamentos</option>
+                        <option value="ACESSORIOS">Acessórios</option>
+                        <option value="OUTROS" selected>Outros</option>
+                    </select>
+                </label>
+
+                <label class="form-row">
+                    <span class="label">Estado de conservação</span>
+                    <select name="estadoConservacao" required>
+                        <option value="NOVO" selected>Novo</option>
+                        <option value="USADO">Usado</option>
+                        <option value="BOAS_CONDICOES">Em boas condições</option>
+                    </select>
+                </label>
+
+                <label class="form-row">
+                    <span class="label">Estado</span>
+                    <select name="estado" required>
+                        <option value="SP" selected>SP</option>
+                        <option value="RJ">RJ</option>
+                        <option value="MG">MG</option>
+                        <option value="BA">BA</option>
+                        <option value="PR">PR</option>
+                        <option value="SC">SC</option>
+                        <option value="RS">RS</option>
+                        <option value="OUTRO">Outro</option>
+                    </select>
+                </label>
+
+                <label class="form-row">
+                    <span class="label">Cidade</span>
+                    <input name="cidade" type="text" required value="São Paulo" />
+                </label>
+
+                <label class="form-row">
+                    <span class="label">Imagem</span>
+                    <input name="imagem" type="file" accept="image/*" required />
+                </label>
+
+                <div class="form-actions">
+                    <button type="submit" class="create-btn">Criar doação</button>
+                </div>
+
+                <div id="form-message" role="status" aria-live="polite"></div>
+            </form>
+        </div>
+
+        <div class="image-preview" id="image-preview" aria-hidden="true"></div>
+    </main>
+
+    <script defer src="assets/js/config.js"></script>
+    <script defer src="assets/js/adicionar.js"></script>
+
+</body>
+
+</html>

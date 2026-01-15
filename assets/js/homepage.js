@@ -184,7 +184,7 @@ async function openDetails(item) {
   }
 
   // fallback: navigate with id (details page will attempt to fetch if needed)
-  window.location.href = `/doacao-detalhes.html?id=${encodeURIComponent(item.id)}`;
+  window.location.href = `/detalhe-doacao.html?id=${encodeURIComponent(item.id)}`;
 }
 
 // wire search to use loadedData

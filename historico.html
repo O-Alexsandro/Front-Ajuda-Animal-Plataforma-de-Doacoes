@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Histórico de Doações</title>
+    <link rel="stylesheet" href="assets/css/historico/historico.css">
+</head>
+
+<body>
+    <div id="container">
+        <div id="header">
+            <img src="/assets/img/logo.avif" alt="logo">
+
+            <div id="header-buttons">
+
+                <div class="nav-item" onclick="window.location.href='./homepage.html'">
+                    <img src="assets/img/homepage/heart.svg" alt="">
+                    <button type="button" class="nav-btn ">Doações</button>
+                </div>
+                <div class="nav-item" onclick="window.location.href='./historico.html'">
+                    <img src="assets/img/homepage/history.svg" alt="">
+                    <button type="button" class="nav-btn">Histórico</button>
+                </div>
+                <div class="nav-item" onclick="window.location.href='./adicionar.html'">
+                    <img src="assets/img/homepage/add.svg" alt="">
+                    <button type="button" class="nav-btn">Adicionar</button>
+                </div>
+                <div class="nav-item" onclick="window.location.href='./perfil.html'">
+                    <img src="assets/img/homepage/user.svg" alt="">
+                    <button type="button" class="nav-btn">Perfil</button>
+                </div>
+                <div class="nav-item">
+                    <button type="button" class="logout-btn">Logout</button>
+                </div>
+            </div>
+        </div>
+
+        <main class="history">
+            <div class="history-inner">
+                <h1 class="page-title">Histórico</h1>
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="interesses">Meus Interesses</button>
+                    <button class="tab-btn" data-tab="minhas">Minhas Doações</button>
+                </div>
+
+                <section class="tab-panels">
+                    <div id="interesses" class="panel active">
+                        <div id="interesses-list" class="cards-list"></div>
+                    </div>
+
+                    <div id="minhas" class="panel">
+                        <div id="minhas-list" class="cards-list"></div>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <!-- Modal (hidden) -->
+        <div id="donation-modal" class="modal" aria-hidden="true">
+            <div class="modal-backdrop"></div>
+            <div class="modal-card" role="dialog" aria-modal="true">
+                <button class="modal-close" aria-label="Fechar">✕</button>
+                <div id="modal-content">
+                    <!-- dynamically filled -->
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script defer src="assets/js/config.js"></script>
+    <script defer src="assets/js/historico.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,134 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+:root {
+    --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+    --primary-color: #FF6B35;
+    --secondary-color: #4ECDC4;
+    --background-color: #f5f5f5;
+    --text-color: #333;
+    --border: #d3cfcd;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-sans);
+}
+
+
+#header-login {
+    width: 100%;
+    height: 100vh;
+    position: relative;
+}
+
+#header {
+    position: relative;
+    z-index: 20;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 10px 50px;
+    border-bottom: 1px solid var(--border);
+    background: #fff; /* keep header visually separated */
+} 
+
+#header > img {
+    width: 70px;
+    height: 70px;
+    margin-left: 30px;
+}
+
+#header-buttons {
+    display: flex;
+    gap: 18px;
+    margin-right: 30px;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px; /* expand hover area to include icon */
+    border-radius: 8px;
+    transition: background 150ms ease, transform 120ms ease;
+    cursor: pointer;
+}
+
+.nav-item .nav-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+    font-size: 0.95rem;
+    font-weight: 600;
+    padding: 6px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.nav-item img {
+    width: 20px;
+    height: 20px;
+}
+
+/* Apply hover to the whole container so it covers the icon + text */
+.nav-item:hover {
+    background: var(--secondary-color);
+    transform: translateY(-1px);
+}
+
+.nav-item:active { transform: translateY(0); }
+
+.logout-btn {
+    background: #fff;
+    border: 1px solid var(--border);
+    color: var(--text-color);
+    padding: 8px 14px;
+    border-radius: 24px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.logout-btn:hover {
+    background: #fafafa;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+/* Detail page layout */
+.detail-page { background: var(--background-color); padding: 32px 20px 80px; min-height: calc(100vh - 96px); }
+.detail-inner { max-width: 1120px; margin: 18px auto; display: grid; grid-template-columns: 1fr 360px; gap: 24px; align-items: start; }
+.detail-left { display: block; }
+.detail-image { background: #fafafa; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; min-height: 420px; display:flex; align-items:center; justify-content:center; }
+.detail-main-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.detail-title { font-size: 1.6rem; font-weight: 700; margin-top: 14px; color: var(--text-color); }
+.detail-meta { color: #777; margin-top: 8px; font-size: 0.95rem; }
+.detail-desc { margin-top: 16px; color: #444; line-height: 1.6; padding: 12px; background: #fff; border-radius:8px; border:1px solid var(--border); }
+
+.detail-right .card { padding: 16px; border-radius: 12px; background: #fff; border: 1px solid var(--border); }
+.detail-owner { margin-top: 8px; display:flex; align-items:center; gap:10px; font-weight:600; }
+
+.btn-primary { display:inline-block; background: var(--primary-color); color: #fff; border: none; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-weight:600; }
+.btn-primary:hover { filter: brightness(0.95); }
+
+.interest-note { background: #fff4f0; border-radius: 8px; padding: 12px; color: #9b2c2c; }
+
+/* preview tweaks */
+.preview-wrap img { max-width: 100%; height: auto; border-radius: 8px; display:block; }
+
+@media (max-width: 980px) {
+    .detail-inner { grid-template-columns: 1fr; }
+    .detail-image { min-height: 280px; }
+}
+
+@media (max-width: 520px) {
+    .detail-page { padding: 16px 10px 60px; }
+    .detail-title { font-size: 1.25rem; }
+}

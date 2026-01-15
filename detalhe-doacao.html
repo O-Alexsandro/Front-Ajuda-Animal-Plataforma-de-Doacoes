@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes da doação</title>
+    <link rel="stylesheet" href="assets/css/detalhe-doacao/detalhe-doacao.css">
+</head>
+
+<body>
+    <div id="container">
+        <div id="header">
+            <img src="/assets/img/logo.avif" alt="logo">
+
+            <div id="header-buttons">
+
+                <div class="nav-item" onclick="window.location.href='./homepage.html'">
+                    <img src="assets/img/homepage/heart.svg" alt="">
+                    <button type="button" class="nav-btn ">Doações</button>
+                </div>
+                <div class="nav-item" onclick="window.location.href='./historico.html'">
+                    <img src="assets/img/homepage/history.svg" alt="">
+                    <button type="button" class="nav-btn">Histórico</button>
+                </div>
+                <div class="nav-item" onclick="window.location.href='./adicionar.html'">
+                    <img src="assets/img/homepage/add.svg" alt="">
+                    <button type="button" class="nav-btn">Adicionar</button>
+                </div>
+                <div class="nav-item" onclick="window.location.href='./perfil.html'">
+                    <img src="assets/img/homepage/user.svg" alt="">
+                    <button type="button" class="nav-btn">Perfil</button>
+                </div>
+                <div class="nav-item">
+                    <button type="button" class="logout-btn">Logout</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <main class="detail-page">
+        <div class="detail-inner">
+            <div class="detail-left">
+                <div id="detail-image" class="detail-image"></div>
+                <div id="detail-title" class="detail-title"></div>
+                <div id="detail-meta" class="detail-meta"></div>
+                <div id="detail-desc" class="detail-desc"></div>
+            </div>
+            <aside class="detail-right">
+                <div class="card">
+                    <h3>Offered by</h3>
+                    <div id="detail-owner" class="detail-owner"></div>
+                </div>
+
+                <div class="card" id="interest-box">
+                    <!-- interest / contact info populated by JS -->
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/detalhe-doacao.js" defer></script>
+
+</body>
+
+</html>
