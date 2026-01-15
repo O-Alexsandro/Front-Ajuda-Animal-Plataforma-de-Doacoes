@@ -95,7 +95,12 @@ document.addEventListener('DOMContentLoaded', () => {
             card.className = 'card';
             const descricao = donation.descricao ? donation.descricao.substring(0, 100) + (donation.descricao.length > 100 ? '...' : '') : '';
             const statusClass = donation.statusInteresse ? `status-badge ${String(donation.statusInteresse).toLowerCase()}` : '';
-            const statusText = donation.statusInteresse ? donation.statusInteresse : 'Pendente';
+                const _rawStatus = donation.statusInteresse || it.statusInteresse || '';
+                const statusText = _rawStatus ? String(_rawStatus)
+                    .toLowerCase()
+                    .replace(/_/g, ' ')
+                    .replace(/\b\w/g, c => c.toUpperCase())
+                    : 'Pendente';
             const imgUrl = resolveImageUrl(donation.imagem);
 
             card.innerHTML = `
@@ -172,10 +177,148 @@ document.addEventListener('DOMContentLoaded', () => {
         // attach listeners
         document.getElementById('modal-edit-btn')?.addEventListener('click', () => enableEdit(donation));
         document.getElementById('modal-delete-btn')?.addEventListener('click', () => confirmDelete(donation));
+        document.getElementById('modal-interesses-btn')?.addEventListener('click', () => showInteressesList(donation));
         document.getElementById('modal-recusar-btn')?.addEventListener('click', () => confirmRecusar(donation));
         document.getElementById('modal-close-btn')?.addEventListener('click', () => closeModal());
         const closeBtns = modal.querySelectorAll('.modal-close');
         closeBtns.forEach(b => b.addEventListener('click', closeModal));
+    }
+
+    async function showInteressesList(donation){
+        const id = donation.id || donation._id || donation.codigo || donation.idDoacao || '';
+        if (!id){ showModalMessage('ID da doação ausente. Não foi possível carregar interessados.', true); return; }
+        const token = localStorage.getItem('token');
+        const headers = token ? { 'Authorization': 'Bearer ' + token } : {};
+        try {
+            const res = await fetch(`${BACKEND_BASE_URL}/interesse/status/doacao/${encodeURIComponent(id)}`, { headers });
+            if (!res.ok) throw new Error('Falha ao carregar interessados: ' + res.status);
+            const data = await res.json();
+
+            // container uses full available width of modal, with max-height and scroll
+            // set width to 164% as requested to expand the list inside the modal
+            let html = `<div class="interesses-list" style="width:215%;box-sizing:border-box;max-height:80vh;overflow:auto;margin:0;padding:12px;background:#fff;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,0.08);">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                    <h3 style="margin:0">Interessados</h3>
+                    <div><button id="interesses-back-btn" class="btn">Voltar</button></div>
+                </div>`;
+            if (!data || !data.length) html += '<div class="card">Nenhum interessado encontrado.</div>';
+            else {
+                data.forEach((item, idx) => {
+                    const u = item.usuario || item.user || item;
+                    const nome = u?.nome || u?.nomeUsuario || u?.username || '';
+                    const email = u?.email || '';
+                    const telefone = u?.telefone || u?.celular || '';
+                    const comentario = item.comentario || item.mensagem || '';
+                    const status = item.status || item.statusInteresse || '';
+                    const interestId = item.id || item._id || item.codigo || item.idInteresse || '';
+                    const idUsuario = u?.id || u?.usuarioId || u?._id || u?.codigo || item.usuarioId || item.idUsuario || '';
+
+                    html += `
+                        <div class="card interesse-item" data-interest-id="${escapeHtml(interestId)}" data-user-id="${escapeHtml(idUsuario)}" data-index="${idx}" style="width:100%;margin-bottom:10px;padding:12px;border-radius:8px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+                                <div style="flex:1;min-width:0">
+                                    <div class="title" style="font-weight:600">${escapeHtml(nome)}</div>
+                                    <div class="description" style="color:#666;font-size:0.95rem">${escapeHtml(email)}${telefone? ' • ' + escapeHtml(telefone):''}</div>
+                                    <div style="margin-top:6px;color:#444">${escapeHtml(comentario)}</div>
+                                    ${status? `<div style="margin-top:6px"><span class="status-badge ${String(status).toLowerCase()}">${escapeHtml(status)}</span></div>`: ''}
+                                </div>
+                                <div style="display:flex;flex-direction:column;gap:8px">
+                                    <button class="btn btn-message" type="button" style="background:#FF6B35;color:#fff;border:none">Mensagem</button>
+                                    <button class="btn btn-confirm" type="button" style="background:#37b24d;color:#fff;border:none">Confirmar</button>
+                                    <button class="btn danger btn-refuse" type="button">Recusar</button>
+                                </div>
+                            </div>
+                        </div>`;
+                });
+            }
+            html += '</div>';
+            // ensure modalContent uses flex so the list can expand to fill available space
+            modalContent.style.display = 'flex';
+            modalContent.style.flexDirection = 'row';
+            modalContent.style.justifyContent = 'center';
+            modalContent.style.alignItems = 'stretch';
+
+            // layout: left column is the list (60% width), right column fills remaining space
+            modalContent.innerHTML = `
+                <div style="display:flex; width:100%; gap:12px;">
+                    <div style="flex:0 0 60%;">
+                        ${html}
+                    </div>
+                    <div style="flex:1"></div>
+                </div>
+            `;
+
+            // attach back listener
+            document.getElementById('interesses-back-btn')?.addEventListener('click', () => openModal(donation, true, false));
+
+            // attach action listeners per item
+            const items = modalContent.querySelectorAll('.interesse-item');
+            items.forEach(it => {
+                const interestId = it.dataset.interestId;
+                const emailText = it.querySelector('.description')?.textContent || '';
+                const btnMsg = it.querySelector('.btn-message');
+                const btnConfirm = it.querySelector('.btn-confirm');
+                const btnRefuse = it.querySelector('.btn-refuse');
+
+                if (btnMsg){
+                    btnMsg.addEventListener('click', () => {
+                        // try open mail client if email present, else try tel, else notify
+                        const parts = emailText.split('•').map(s => s.trim());
+                        const possibleEmail = parts[0] || '';
+                        if (possibleEmail && possibleEmail.includes('@')){
+                            window.location.href = `mailto:${possibleEmail}`;
+                        } else if (parts[1]){
+                            const tel = parts[1];
+                            window.location.href = `tel:${tel}`;
+                        } else {
+                            alert('Contato não disponível para este usuário.');
+                        }
+                    });
+                }
+
+                if (btnConfirm){
+                    btnConfirm.addEventListener('click', async () => {
+                        if (!confirm('Confirma a doação para este usuário?')) return;
+                        // read user id from DOM dataset (set when rendering)
+                        const idUsuario = it.dataset.userId || '';
+                        const idDoacao = donation.id || donation._id || donation.codigo || donation.idDoacao || '';
+                        if (!idUsuario || !idDoacao) { alert('IDs necessários ausentes.'); return; }
+
+                        const token = localStorage.getItem('token');
+                        const headers = token ? { 'Authorization': 'Bearer ' + token } : {};
+                        try {
+                            const url = `${BACKEND_BASE_URL}/doacoes/confirmar/${encodeURIComponent(idUsuario)}/${encodeURIComponent(idDoacao)}`;
+                            const res = await fetch(url, { method: 'POST', headers });
+                            if (!res.ok) throw new Error('Falha ao confirmar: ' + res.status);
+                            alert('Doação confirmada.');
+                            // refresh list
+                            showInteressesList(donation);
+                        } catch (err){
+                            alert('Erro: ' + err.message);
+                        }
+                    });
+                }
+
+                if (btnRefuse){
+                    btnRefuse.addEventListener('click', async () => {
+                        if (!confirm('Confirma recusar o interesse deste usuário?')) return;
+                        const token = localStorage.getItem('token');
+                        const headers = token ? { 'Authorization': 'Bearer ' + token } : {};
+                        try {
+                            const res = await fetch(`${BACKEND_BASE_URL}/interesse/${encodeURIComponent(interestId)}`, { method: 'DELETE', headers });
+                            if (!res.ok) throw new Error('Falha ao recusar: ' + res.status);
+                            alert('Interesse recusado.');
+                            showInteressesList(donation);
+                        } catch (err){
+                            alert('Erro: ' + err.message);
+                        }
+                    });
+                }
+            });
+        } catch (err){
+            modalContent.innerHTML = `<div class="card">Erro: ${escapeHtml(err.message)}</div><button id="interesses-back-btn" class="btn">Voltar</button>`;
+            document.getElementById('interesses-back-btn')?.addEventListener('click', () => openModal(donation, true, false));
+        }
     }
 
     function closeModal(){
@@ -192,6 +335,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (editable) {
             editButtons = `
                 <div class="modal-actions">
+                    <button id="modal-interesses-btn" class="btn">Ver Interessados</button>
                     <button id="modal-edit-btn" class="btn primary">Editar</button>
                     <button id="modal-delete-btn" class="btn danger">Excluir</button>
                 </div>
@@ -199,7 +343,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (isInterest) {
             editButtons = `
                 <div class="modal-actions">
-                    <button id="modal-recusar-btn" class="btn danger">Recusar Interesse</button>
+                    <button id="modal-recusar-btn" class="btn danger">Cancelar Interesse</button>
                 </div>
             `;
         }
@@ -292,15 +436,31 @@ document.addEventListener('DOMContentLoaded', () => {
         const cidade = formEl.querySelector('input[name="cidade"]').value;
         const imagemInput = formEl.querySelector('input[name="imagem"]');
 
+        // determine id and usuarioId (required)
+        const idValue = donation.id || donation._id || donation.codigo || donation.idDoacao || '';
+        const usuarioId = donation.usuarioId || localStorage.getItem('userId') || '';
+        if (!idValue || !usuarioId) {
+            showModalMessage('Campos obrigatórios ausentes: id e usuarioId', true);
+            return;
+        }
+
+        // always send FormData so backend @ModelAttribute + MultipartFile works
         const fd = new FormData();
-        fd.append('id', donation.id || donation._id || donation.codigo || donation.idDoacao || '');
-        fd.append('titulo', titulo);
-        fd.append('descricao', descricao);
-        fd.append('categoria', categoria);
-        fd.append('estadoConservacao', estadoConservacao);
-        fd.append('estado', estado);
-        fd.append('cidade', cidade);
+        fd.append('id', idValue);
+        fd.append('usuarioId', usuarioId);
+
+        // optional fields appended only if provided
+        if (titulo && String(titulo).trim()) fd.append('titulo', titulo);
+        if (descricao && String(descricao).trim()) fd.append('descricao', descricao);
+        if (categoria && String(categoria).trim()) fd.append('categoria', categoria);
+        if (estadoConservacao && String(estadoConservacao).trim()) fd.append('estadoConservacao', estadoConservacao);
+        if (estado && String(estado).trim()) fd.append('estado', estado);
+        if (cidade && String(cidade).trim()) fd.append('cidade', cidade);
         if (imagemInput && imagemInput.files && imagemInput.files[0]) fd.append('imagem', imagemInput.files[0]);
+        else if (donation && donation.imagem) {
+            // no new file selected — include existing image reference so backend can keep it
+            fd.append('imagem', donation.imagem);
+        }
 
         const token = localStorage.getItem('token');
         const headers = token ? { 'Authorization': 'Bearer ' + token } : {};
@@ -335,13 +495,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function confirmRecusar(donation){
-        if (!confirm('Confirma que deseja recusar seu interesse nesta doação?')) return;
-        const id = donation.id || donation._id || donation.codigo || donation.idDoacao || '';
-        if (!id){ showModalMessage('ID da doação ausente. Não foi possível recusar.', true); return; }
+        if (!confirm('Confirma que deseja cancelar seu interesse nesta doação?')) return;
+        // try to determine interest id and usuario id
+        const interestId = donation.id || donation._id || donation.codigo || donation.idDoacao || donation.idInteresse || donation.idInteresse || '';
+        const usuarioId = donation.usuarioId || localStorage.getItem('userId') || (donation.usuario && (donation.usuario.id || donation.usuario.usuarioId)) || '';
+        if (!interestId){ showModalMessage('ID do interesse ausente. Não foi possível recusar.', true); return; }
+
         const token = localStorage.getItem('token');
         const headers = token ? { 'Authorization': 'Bearer ' + token } : { 'Content-Type': 'application/json' };
         try {
-            const res = await fetch(`${BACKEND_BASE_URL}/interesse/${encodeURIComponent(id)}`, { method: 'DELETE', headers });
+            let res;
+            if (usuarioId) {
+                // new route: /interesse/cancelar/{idUsuario}/{idInteresse}
+                res = await fetch(`${BACKEND_BASE_URL}/interesse/cancelar/${encodeURIComponent(usuarioId)}/${encodeURIComponent(interestId)}`, { method: 'DELETE', headers });
+            } else {
+                // fallback to older route if usuarioId not known
+                res = await fetch(`${BACKEND_BASE_URL}/interesse/${encodeURIComponent(interestId)}`, { method: 'DELETE', headers });
+            }
+
             if (!res.ok) throw new Error('Falha ao recusar interesse: ' + res.status);
             showModalMessage('Interesse removido.');
             await loadInteresses();
