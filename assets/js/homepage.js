@@ -105,7 +105,12 @@ function renderCards(data) {
     return;
   }
   const fragment = document.createDocumentFragment();
-  data.forEach(item => fragment.appendChild(createCard(item)));
+  data.forEach((item, i) => {
+    const c = createCard(item);
+    // set animation index for staggered entrance
+    c.style.setProperty('--i', String(i));
+    fragment.appendChild(c);
+  });
   cardsContainer.appendChild(fragment);
 }
 
@@ -228,6 +233,121 @@ searchInput.addEventListener('input', filterAndRender);
 if (categorySelect) categorySelect.addEventListener('change', filterAndRender);
 if (conditionSelect) conditionSelect.addEventListener('change', filterAndRender);
 fetchDonations();
+
+// enhance selects: add classes on focus/open and on change to show selected state
+function enhanceSelect(sel){
+  if (!sel) return;
+  sel.addEventListener('focus', ()=> sel.classList.add('open'));
+  sel.addEventListener('blur', ()=> sel.classList.remove('open'));
+  sel.addEventListener('change', ()=>{
+    if (sel.value && String(sel.value).trim() !== '') {
+      sel.classList.add('selected');
+    } else {
+      sel.classList.remove('selected');
+    }
+    // small visual pulse when selecting
+    sel.classList.remove('just-changed');
+    void sel.offsetWidth;
+    sel.classList.add('just-changed');
+  });
+}
+
+enhanceSelect(categorySelect);
+enhanceSelect(conditionSelect);
+
+// Replace native select with an accessible custom dropdown while keeping the native select in sync
+function createCustomDropdown(sel){
+  if (!sel) return null;
+  // build structure
+  const wrapper = document.createElement('div');
+  wrapper.className = 'custom-select';
+
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'custom-select__button';
+  btn.setAttribute('aria-haspopup','listbox');
+  btn.setAttribute('aria-expanded','false');
+
+  const labelSpan = document.createElement('span');
+  labelSpan.className = 'custom-select__label';
+  labelSpan.textContent = (sel.options[sel.selectedIndex] && sel.options[sel.selectedIndex].text) || sel.getAttribute('placeholder') || sel.options[0].text;
+
+  const arrow = document.createElement('span');
+  arrow.className = 'custom-select__arrow';
+  arrow.innerHTML = "<svg viewBox='0 0 24 24' width='14' height='14' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>";
+
+  btn.appendChild(labelSpan);
+  btn.appendChild(arrow);
+
+  const list = document.createElement('div');
+  list.className = 'custom-select__menu';
+  list.setAttribute('role','listbox');
+  list.tabIndex = -1;
+
+  // populate items
+  Array.from(sel.options).forEach((opt, idx)=>{
+    const it = document.createElement('div');
+    it.className = 'custom-select__item';
+    it.setAttribute('role','option');
+    it.setAttribute('data-value', opt.value);
+    it.tabIndex = 0;
+    it.textContent = opt.text;
+    if (opt.disabled) it.setAttribute('aria-disabled','true');
+    if (opt.selected) it.setAttribute('aria-selected','true');
+    it.addEventListener('click', ()=> selectItem(it));
+    it.addEventListener('keydown', (e)=>{
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectItem(it); }
+      if (e.key === 'ArrowDown') { e.preventDefault(); focusNext(it); }
+      if (e.key === 'ArrowUp') { e.preventDefault(); focusPrev(it); }
+      if (e.key === 'Escape') { closeMenu(); btn.focus(); }
+    });
+    list.appendChild(it);
+  });
+
+  // helper functions
+  function openMenu(){ wrapper.classList.add('open'); btn.setAttribute('aria-expanded','true'); list.style.display='block'; setTimeout(()=> list.focus(), 0); }
+  function closeMenu(){ wrapper.classList.remove('open'); btn.setAttribute('aria-expanded','false'); list.style.display='none'; }
+  function toggleMenu(){ if (wrapper.classList.contains('open')) closeMenu(); else openMenu(); }
+  function updateLabel(text){ labelSpan.textContent = text; }
+  function selectItem(item){ if (item.getAttribute('aria-disabled')==='true') return; const v = item.getAttribute('data-value'); sel.value = v; // update native select
+    // update selected visual state
+    Array.from(list.children).forEach(c=> c.setAttribute('aria-selected','false'));
+    item.setAttribute('aria-selected','true');
+    updateLabel(item.textContent);
+    // dispatch change on native select so existing handlers run
+    const ev = new Event('change', { bubbles: true });
+    sel.dispatchEvent(ev);
+    closeMenu();
+    btn.focus();
+  }
+  function focusNext(current){ const next = current.nextElementSibling; if (next) next.focus(); }
+  function focusPrev(current){ const prev = current.previousElementSibling; if (prev) prev.focus(); }
+
+  // wire events
+  btn.addEventListener('click', (e)=>{ e.stopPropagation(); toggleMenu(); });
+  btn.addEventListener('keydown', (e)=>{
+    if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openMenu(); const first = list.querySelector('[role=option]'); if (first) first.focus(); }
+  });
+
+  // close when clicking outside
+  document.addEventListener('click', (ev)=>{ if (!wrapper.contains(ev.target)) closeMenu(); });
+  document.addEventListener('keydown', (ev)=>{ if (ev.key === 'Escape') closeMenu(); });
+
+  // insert into DOM: hide original select but keep it for form semantics
+  sel.classList.add('select-hidden');
+  sel.parentNode.insertBefore(wrapper, sel.nextSibling);
+  wrapper.appendChild(btn);
+  wrapper.appendChild(list);
+
+  // set initial display none for menu
+  list.style.display = 'none';
+
+  return { wrapper, button: btn, list };
+}
+
+// attach custom dropdowns to both selects
+const customCategory = createCustomDropdown(categorySelect);
+const customCondition = createCustomDropdown(conditionSelect);
 
 // Export render function for future use
 window.renderCards = renderCards;

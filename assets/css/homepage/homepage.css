@@ -177,12 +177,129 @@ body {
     background: #fff;
     border: 1px solid var(--border);
     padding: 10px 14px;
+    padding-right: 44px; /* room for custom arrow */
     border-radius: 12px;
     font-size: 0.95rem;
     color: var(--text-color);
     cursor: pointer;
-    min-width: 160px;
+    min-width: 140px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M7 10l5 5 5-5' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 12px 12px; /* smaller arrow */
+    transition: box-shadow 160ms ease, border-color 120ms ease, transform 120ms ease;
 }
+
+/* hide IE native arrow */
+.select-control::-ms-expand { display: none; }
+
+.select-control:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.04); }
+
+.select-control:focus {
+    outline: none;
+    border-color: var(--secondary-color);
+    box-shadow: 0 6px 18px rgba(78,205,196,0.10);
+    transform: translateY(-1px);
+}
+
+/* Open state (when user clicks to open dropdown) */
+.select-control.open {
+    border-color: var(--secondary-color);
+    box-shadow: 0 12px 28px rgba(78,205,196,0.12);
+    transform: translateY(-2px);
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M17 14l-5-5-5 5' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>"), none;
+    background-size: 12px 12px, auto;
+}
+
+/* Selected state shows a small check before the arrow */
+.select-control.selected {
+    border-color: var(--primary-color);
+    box-shadow: 0 8px 20px rgba(255,107,53,0.08);
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M20 6L9 17l-5-5' fill='none' stroke='%23ffffff' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'/></svg>"), url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M7 10l5 5 5-5' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    background-repeat: no-repeat, no-repeat;
+    background-position: right 36px center, right 14px center;
+    background-size: 12px 12px, 12px 12px;
+}
+
+/* smooth transitions when toggling classes */
+.select-control {
+    transition: box-shadow 160ms ease, border-color 120ms ease, transform 120ms ease, background-image 160ms ease;
+}
+
+/* style options inside the native dropdown where possible */
+.select-control option {
+    padding: 8px 12px;
+    font-size: 0.95rem;
+    color: var(--text-color);
+    background: #ffffff;
+}
+
+/* selected option highlight (some browsers may ignore) */
+.select-control option:checked {
+    background: var(--primary-color);
+    color: #fff;
+}
+
+/* Custom dropdown (replacement for native select) */
+.custom-select {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    max-width: 220px;
+    text-align: center;
+}
+.custom-select__button {
+    width: 100%;
+    text-align: center;
+    padding: 10px 14px;
+    padding-right: 40px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 0.95rem;
+}
+.custom-select__button:focus { outline: none; box-shadow: 0 6px 18px rgba(78,205,196,0.10); border-color: var(--secondary-color); }
+.custom-select__arrow { width: 14px; height: 14px; opacity: 0.9; transition: transform 180ms ease; }
+.custom-select.open .custom-select__arrow { transform: rotate(-180deg); }
+.custom-select__menu {
+    position: absolute;
+    left: 0; right: 0;
+    margin-top: 8px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+    max-height: 220px;
+    overflow: auto;
+    z-index: 60;
+    padding: 6px 6px;
+}
+.custom-select__item {
+    padding: 10px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.custom-select__item:hover, .custom-select__item[aria-selected='true'] {
+    background: linear-gradient(90deg, rgba(255,107,53,0.06), rgba(78,205,196,0.04));
+}
+.custom-select__item[aria-selected='true'] { font-weight: 700; color: var(--primary-color); }
+
+/* small visual helper for keyboard focus */
+.custom-select__item:focus { outline: 2px solid rgba(78,205,196,0.18); }
+
+/* reduce default select visibility when replaced */
+.select-hidden { position: absolute !important; left: -9999px !important; top: auto !important; width: 1px !important; height: 1px !important; overflow: hidden !important; }
 
 /* Responsive */
 @media (max-width: 900px) {
@@ -212,6 +329,36 @@ body {
     box-shadow: 0 1px 4px rgba(0,0,0,0.03);
 }
 
+/* Animated entrance and hover polish */
+.card {
+    position: relative;
+    transform-origin: center center;
+    will-change: transform, opacity, box-shadow;
+    opacity: 0;
+    transform: translateY(10px) scale(0.995);
+    animation: cardIn 420ms cubic-bezier(.2,.9,.3,1) both;
+    animation-delay: calc(var(--i, 0) * 80ms);
+}
+
+@keyframes cardIn {
+    from { opacity: 0; transform: translateY(12px) scale(0.995); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.card::before {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; top: 0;
+    height: 6px;
+    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+}
+
+.card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+    border-color: rgba(0,0,0,0.06);
+}
+
 .card-media {
     background: #f6f6f6;
     height: 240px;
@@ -226,7 +373,10 @@ body {
     height: 240px;
     object-fit: cover;
     display: block;
+    transition: transform 600ms cubic-bezier(.2,.9,.3,1);
 }
+
+.card:hover .card-img { transform: scale(1.06); }
 
 .carousel-btn {
     position: absolute;
@@ -314,6 +464,8 @@ body {
     font-weight: 700;
     cursor: pointer;
 }
+
+.btn-ghost:hover { filter: brightness(.98); transform: translateY(-2px); transition: transform 160ms ease; }
 
 /* Responsive single column */
 @media (max-width: 900px) {
