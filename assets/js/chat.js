@@ -3,6 +3,7 @@ const BACKEND_WS = (function(){
 })();
 
 let socket = null;
+let socketAvailable = false;
 let currentConversation = null; // {id, withUserId, donationId}
 const currentUserId = localStorage.getItem('userId') || null;
 
@@ -13,16 +14,36 @@ function connectSocket(){
 
   socket.addEventListener('open', ()=>{
     console.log('chat socket open')
+    socketAvailable = true;
     // request conversations list
-    socket.send(JSON.stringify({type:'list'}));
+    try { socket.send(JSON.stringify({type:'list'})); } catch(e){ console.warn('ws send list failed', e); }
+
+    // If some page requested opening a conversation before WS was ready, process it now
+    try {
+      const pending = localStorage.getItem('chat_open_with');
+      if (pending){
+        const p = JSON.parse(pending);
+        console.debug('connectSocket processing pending chat_open_with:', p);
+        if (p && p.userId){
+          try {
+            // set provisional title if we have a name
+            try { if (p.userName) document.getElementById('conv-title').textContent = p.userName; } catch(e){}
+            // set provisional donation meta if present
+            try { if (p.donationTitle) renderConversationMeta({ name: p.userName, donationTitle: p.donationTitle }); } catch(e){}
+            socket.send(JSON.stringify({ type: 'open', withUserId: p.userId, donationId: p.donationId }));
+          } catch(e){ console.warn('ws send open failed', e); }
+        }
+        localStorage.removeItem('chat_open_with');
+      }
+    } catch(e){ console.warn('processing chat_open_with on ws open failed', e); }
   });
 
   socket.addEventListener('message', ev=>{
     try{ const data = JSON.parse(ev.data); handleSocketMessage(data); }catch(e){ console.warn('bad ws msg', ev.data) }
   });
 
-  socket.addEventListener('close', ()=>console.log('chat socket closed'));
-  socket.addEventListener('error', e=>console.error('chat socket error', e));
+  socket.addEventListener('close', ()=>{ console.log('chat socket closed'); socketAvailable = false; });
+  socket.addEventListener('error', e=>{ console.error('chat socket error', e); socketAvailable = false; });
   return socket;
 }
 
@@ -33,8 +54,14 @@ function handleSocketMessage(msg){
     case 'message': appendMessage(msg.message); break;
     case 'opened': // server responded to open request with conversation details
       if(msg.conversation){
+        console.debug('ws opened conversation payload:', msg.conversation);
         currentConversation = {id: msg.conversation.id, withUserId: msg.conversation.withUserId, donationId: msg.conversation.donationId};
-        document.getElementById('conv-title').textContent = msg.conversation.name || 'Conversa';
+        // only override title if server provided an explicit name
+        try {
+          if (msg.conversation.name) document.getElementById('conv-title').textContent = msg.conversation.name;
+        } catch(e){}
+        // render conversation meta (user info) if available
+        renderConversationMeta(msg.conversation);
         socket.send(JSON.stringify({type:'history', conversationId: currentConversation.id}));
       }
       break;
@@ -42,12 +69,106 @@ function handleSocketMessage(msg){
   }
 }
 
-function openConversationWith(userId, donationId){
-  connectSocket();
-  // ask server to open or create a convo
-  socket.send(JSON.stringify({type:'open', withUserId:userId, donationId}));
-  // navigate to chat page if not already there
-  if(location.pathname.split('/').pop() !== 'chat.html') location.href = 'chat.html';
+function renderConversationMeta(conv){
+  console.debug('renderConversationMeta called with:', conv);
+  const metaEl = document.getElementById('conv-meta');
+  if (!metaEl) return;
+  // conv may include name, withUserId, donationId, avatar, email
+  const name = conv.name || conv.withUserName || '';
+  const userId = conv.withUserId || '';
+  const donationId = conv.donationId || '';
+  const donationTitle = conv.donationTitle || conv.donationName || '';
+  const email = conv.withUserEmail || conv.email || '';
+  const avatar = conv.avatar || conv.withUserAvatar || '';
+  // Only render meta when we have useful information to show.
+  if (!avatar && !name && !userId && !donationId && !donationTitle && !email) {
+    metaEl.innerHTML = '';
+    return;
+  }
+
+  let html = '';
+  if (avatar) html += `<div class="conv-avatar"><img src="${avatar}" alt="avatar"/></div>`;
+  html += `<div class="conv-info">`;
+  if (name) html += `<div class="conv-name">${escapeHtml(name)}</div>`;
+  // show email in bold below the name (preferred) — if not available, do not show ID inline
+  if (email) html += `<div class="conv-email"><strong>${escapeHtml(email)}</strong></div>`;
+  if (donationTitle) html += `<div class="conv-donation">${escapeHtml(donationTitle)}</div>`;
+  html += `</div>`;
+  metaEl.innerHTML = html;
+}
+
+function ensureMetaFromMessage(m){
+  const metaEl = document.getElementById('conv-meta');
+  if (!metaEl) return;
+  if (metaEl.innerHTML && metaEl.innerHTML.trim() !== '') return; // already set
+  const name = m.fromName || m.fromDisplayName || '';
+  const userId = m.from || '';
+  if (!name && !userId) return;
+  const conv = { name, withUserId: userId };
+  renderConversationMeta(conv);
+}
+
+// Wait until socket becomes open or timeout (ms)
+function waitForSocketOpen(timeoutMs){
+  return new Promise((resolve) => {
+    if (socket && socket.readyState === WebSocket.OPEN && socketAvailable) return resolve(true);
+    let resolved = false;
+    function onOpen(){ if (resolved) return; resolved = true; resolve(true); }
+    function onEnd(){ if (resolved) return; resolved = true; resolve(false); }
+    try {
+      socket?.addEventListener('open', onOpen, {once:true});
+    } catch(e){}
+    setTimeout(()=>{ onEnd(); }, timeoutMs || 1000);
+  });
+}
+
+// Try to create a conversation via HTTP POST to common endpoints. Returns conversation object or null.
+async function createConversationHttp(userId, donationId){
+  if (!userId) return null;
+  const token = localStorage.getItem('token');
+  const headers = { 'Content-Type':'application/json' };
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+  const payload = { withUserId: userId, donationId };
+  const endpoints = ['/conversations','/conversa','/conversation','/conversas'];
+  for (let ep of endpoints){
+    try {
+      const url = (BACKEND_BASE_URL.replace(/\/+$/,'')) + ep;
+      const res = await fetch(url, { method: 'POST', headers, body: JSON.stringify(payload) });
+      if (!res.ok) continue;
+      const data = await res.json();
+      return data;
+    } catch(e){ console.warn('createConversationHttp failed for', ep, e); continue; }
+  }
+  return null;
+}
+
+function openConversationWith(userId, donationId, userName, donationTitle){
+  // If socket is available and open, ask server to open or create a convo
+  if (socket && socket.readyState === WebSocket.OPEN && socketAvailable){
+    try {
+      socket.send(JSON.stringify({type:'open', withUserId:userId, donationId}));
+    } catch(e){ console.warn('ws open send failed', e); }
+    if(location.pathname.split('/').pop() !== 'chat.html') location.href = 'chat.html';
+    // set provisional title while waiting server response
+    try { if (userName) document.getElementById('conv-title').textContent = userName; } catch(e){}
+    // set provisional donation title in meta if available
+    try { if (donationTitle) renderConversationMeta({ name: userName, donationTitle }); } catch(e){}
+    return;
+  }
+
+  // No WS available: create a local conversation placeholder so the UI can open immediately
+  const localId = 'local-' + (userId||'unknown') + '-' + Date.now();
+  currentConversation = { id: localId, withUserId: userId, donationId };
+  // if on chat page, render empty conversation UI
+  if (location.pathname.split('/').pop() === 'chat.html'){
+    try { document.getElementById('conv-title').textContent = userName || 'Conversa'; } catch(e){}
+    renderMessages([]);
+    return;
+  }
+
+  // not on chat page: store intent so chat page can open placeholder after navigation
+  try { localStorage.setItem('chat_open_with', JSON.stringify({ userId, donationId, localFallback: true, conversationId: localId, userName, donationTitle })); } catch(e){}
+  location.href = 'chat.html';
 }
 
 function sendMessage(text){
@@ -98,6 +219,8 @@ function renderMessages(msgs){
 
 function appendMessage(m){
   const wrap = el('#messages'); if(!wrap) return;
+  // ensure conv meta shows who we're talking to when messages arrive
+  ensureMetaFromMessage(m);
   const fromMe = (typeof m.fromMe !== 'undefined') ? m.fromMe : (m.from === currentUserId || m.from === String(currentUserId));
   const row = document.createElement('div'); row.className = 'msg-wrap';
   const avatarHtml = `<div class="msg-avatar">${(m.fromName||'U').split(' ').map(s=>s[0]).slice(0,2).join('').toUpperCase()}</div>`;
@@ -114,7 +237,68 @@ function escapeHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;'
 function formatTime(ts){ try{ const d = ts ? new Date(ts) : new Date(); return d.toLocaleString(); }catch(e){ return '' } }
 
 document.addEventListener('DOMContentLoaded', ()=>{
+  // If page was opened with intent to chat, show the userName immediately
+  try {
+    const pendingQuick = localStorage.getItem('chat_open_with');
+    if (pendingQuick){
+      const pq = JSON.parse(pendingQuick);
+      console.debug('DOMContentLoaded found chat_open_with:', pq);
+      if (pq && pq.userName){
+        try { document.getElementById('conv-title').textContent = pq.userName; } catch(e){}
+      }
+      // also set donation meta immediately when available so the donation title appears below the name
+      try { if (pq && pq.donationTitle) renderConversationMeta({ name: pq.userName, donationTitle: pq.donationTitle }); } catch(e){}
+    }
+  } catch(e){}
+
   connectSocket();
+  // If another page requested to open a conversation, process it now (WS -> HTTP -> local fallback)
+  (async function(){
+    try {
+      const pending = localStorage.getItem('chat_open_with');
+      if (!pending) return;
+      const p = JSON.parse(pending);
+      if (!p) { localStorage.removeItem('chat_open_with'); return; }
+
+      // restore earlier placeholder immediately
+      if (p.localFallback && p.conversationId){
+        currentConversation = { id: p.conversationId, withUserId: p.userId, donationId: p.donationId };
+        try { document.getElementById('conv-title').textContent = p.userName || 'Conversa'; } catch(e){}
+        try { if (p.donationTitle) renderConversationMeta({ name: p.userName, donationTitle: p.donationTitle }); } catch(e){}
+        renderMessages([]);
+        localStorage.removeItem('chat_open_with');
+        return;
+      }
+
+      // wait briefly for websocket to become available
+      const opened = await waitForSocketOpen(1500);
+      if (opened && socketAvailable){
+        openConversationWith(p.userId, p.donationId, p.userName, p.donationTitle);
+        localStorage.removeItem('chat_open_with');
+        return;
+      }
+
+      // try HTTP fallback to create conversation server-side
+      const conv = await createConversationHttp(p.userId, p.donationId);
+      if (conv && (conv.id || conv.conversationId || conv._id)){
+        const cid = conv.id || conv.conversationId || conv._id;
+        currentConversation = { id: cid, withUserId: conv.withUserId || p.userId, donationId: conv.donationId || p.donationId };
+        try { document.getElementById('conv-title').textContent = conv.name || p.userName || 'Conversa'; } catch(e){}
+        try { renderConversationMeta(Object.assign({}, conv, { donationTitle: conv.donationTitle || p.donationTitle })); } catch(e){}
+        renderMessages([]);
+        localStorage.removeItem('chat_open_with');
+        return;
+      }
+
+      // last resort: local placeholder
+      const localId = 'local-' + (p.userId||'unknown') + '-' + Date.now();
+      currentConversation = { id: localId, withUserId: p.userId, donationId: p.donationId };
+      try { document.getElementById('conv-title').textContent = p.userName || 'Conversa'; } catch(e){}
+      try { if (p.donationTitle) renderConversationMeta({ name: p.userName, donationTitle: p.donationTitle }); } catch(e){}
+      renderMessages([]);
+      localStorage.removeItem('chat_open_with');
+    } catch(e){ console.warn('chat open pending parse failed', e); }
+  })();
   const form = document.getElementById('message-form'); if(form){
     form.addEventListener('submit', e=>{
       e.preventDefault(); const input = document.getElementById('message-input'); if(!input||!input.value) return; sendMessage(input.value); input.value='';
@@ -125,35 +309,12 @@ document.addEventListener('DOMContentLoaded', ()=>{
 });
 
 // Expose helper to be called from other pages
-window.chatOpenWith = function(userId, donationId){ openConversationWith(userId, donationId); }
-
-// Demo helpers: populate UI with fake data when no backend available
-function runChatDemo(){
-  const demoConvos = [
-    { id: 'demo-1', withUserId: 'u100', name: 'Mariana Silva', lastMessage: 'Perfeito, eu passo aí amanhã', unreadCount: 2, donationId: 'd1' },
-    { id: 'demo-2', withUserId: 'u101', name: 'Carlos Pereira', lastMessage: 'Tem como enviar hoje?', unreadCount: 0, donationId: 'd2' }
-  ];
-  renderContacts(demoConvos);
-  // open first conversation
-  currentConversation = { id: demoConvos[0].id, withUserId: demoConvos[0].withUserId, donationId: demoConvos[0].donationId };
-  document.getElementById('conv-title').textContent = demoConvos[0].name;
-  const demoMessages = [
-    { from: demoConvos[0].withUserId, fromName: demoConvos[0].name, text: 'Olá! Ainda precisa da doação?', ts: Date.now() - 1000*60*60*4 },
-    { from: currentUserId || 'me', fromName: 'Você', text: 'Sim, por favor. Posso buscar amanhã?', ts: Date.now() - 1000*60*60*3, fromMe: true },
-    { from: demoConvos[0].withUserId, fromName: demoConvos[0].name, text: 'Perfeito, que horas?', ts: Date.now() - 1000*60*30 },
-    { from: currentUserId || 'me', fromName: 'Você', text: 'Posso às 18h.', ts: Date.now() - 1000*60*20, fromMe: true }
-  ];
-  renderMessages(demoMessages);
-}
-
-// If after a short delay no contacts were loaded (no backend), show demo
-setTimeout(()=>{
-  const wrap = el('#contacts-list');
-  if (!wrap) return;
-  if (wrap.children.length === 0) {
-    runChatDemo();
+window.chatOpenWith = function(userId, donationId, userName, donationTitle){
+  // If we're not on chat page, store request and navigate so the chat page can open it after socket connects
+  if (location.pathname.split('/').pop() !== 'chat.html'){
+    try { localStorage.setItem('chat_open_with', JSON.stringify({userId, donationId, userName, donationTitle})); } catch(e){}
+    location.href = 'chat.html';
+    return;
   }
-}, 600);
-
-// expose demo trigger
-window.chatDemo = runChatDemo;
+  openConversationWith(userId, donationId, userName, donationTitle);
+}
