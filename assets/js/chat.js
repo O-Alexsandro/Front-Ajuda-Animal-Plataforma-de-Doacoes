@@ -7,6 +7,17 @@ let socketAvailable = false;
 let currentConversation = null; // {id, withUserId, donationId}
 const currentUserId = localStorage.getItem('userId') || null;
 
+// Deterministic avatar color for a given string (id or name)
+function colorForString(s){
+  const palette = ['#FFB4A2','#FFDAC1','#FFE6A7','#D0F0C0','#B6E3E9','#C9BBFF','#F3C4FB','#FDE2F3','#FFD6A5','#E2F0CB'];
+  if (!s) return palette[0];
+  try{
+    let h = 0; for(let i=0;i<s.length;i++) h = ((h<<5)-h) + s.charCodeAt(i);
+    const idx = Math.abs(h) % palette.length;
+    return palette[idx];
+  }catch(e){ return palette[0]; }
+}
+
 function connectSocket(){
   if(socket && socket.readyState===WebSocket.OPEN) return socket;
   const token = localStorage.getItem('token');
@@ -30,7 +41,9 @@ function connectSocket(){
             try { if (p.userName) document.getElementById('conv-title').textContent = p.userName; } catch(e){}
             // set provisional donation meta if present
             try { if (p.donationTitle) renderConversationMeta({ name: p.userName, donationTitle: p.donationTitle }); } catch(e){}
-            socket.send(JSON.stringify({ type: 'open', withUserId: p.userId, donationId: p.donationId }));
+            openConversationWith(p.userId, p.donationId, p.userName, p.donationTitle);
+            // clear unread badge if any for the conversation that will be opened
+            try { const el = document.querySelector(`.contact-item[data-with-user-id="${p.userId}"]`) || document.querySelector(`.contact-item[data-conversation-id="${p.conversationId || ''}"]`); if (el){ const b = el.querySelector('.unread-badge'); if (b) b.remove(); } } catch(e){}
           } catch(e){ console.warn('ws send open failed', e); }
         }
         localStorage.removeItem('chat_open_with');
@@ -51,7 +64,39 @@ function handleSocketMessage(msg){
   switch(msg.type){
     case 'list': renderContacts(msg.conversations||[]); break;
     case 'history': if(msg.conversationId===currentConversation?.id) renderMessages(msg.messages||[]); break;
-    case 'message': appendMessage(msg.message); break;
+    case 'message': {
+      // message payload may include conversationId either at top-level or inside message
+      const m = msg.message || msg;
+      const convId = msg.conversationId || m.conversationId || m.conversationId || m.conversation || null;
+      console.debug('ws incoming message for conv:', convId, 'message:', m);
+      // If the incoming message is not for the currently open conversation, mark it unread and update contacts list instead
+      if (convId && currentConversation?.id !== convId){
+        try {
+          // find the contact item with that conversation id
+          const it = document.querySelector(`.contact-item[data-conversation-id="${convId}"]`);
+          if (it){
+            const badge = it.querySelector('.unread-badge');
+            if (badge){
+              // increment numeric badge if possible
+              const val = parseInt(badge.textContent||'0') || 0;
+              badge.textContent = String(val + 1);
+              // pulse to draw attention
+              try{ badge.classList.add('pulse'); setTimeout(()=> badge.classList.remove('pulse'), 900); }catch(e){}
+            } else {
+              const meta = it.querySelector('.contact-meta');
+              if (meta){
+                const newBadge = document.createElement('div'); newBadge.className = 'unread-badge pulse'; newBadge.textContent = '1'; meta.appendChild(newBadge);
+                setTimeout(()=> newBadge.classList.remove('pulse'), 900);
+              }
+            }
+          }
+        } catch(e){ console.warn('increment unread badge failed', e); }
+        return;
+      }
+      // belongs to current conversation — append to view
+      appendMessage(m);
+      break;
+    }
     case 'opened': // server responded to open request with conversation details
       if(msg.conversation){
         console.debug('ws opened conversation payload:', msg.conversation);
@@ -62,6 +107,8 @@ function handleSocketMessage(msg){
         } catch(e){}
         // render conversation meta (user info) if available
         renderConversationMeta(msg.conversation);
+        // clear unread badge for this conversation in contacts list
+        try { const el = document.querySelector(`.contact-item[data-conversation-id="${currentConversation.id}"]`); if (el){ const b = el.querySelector('.unread-badge'); if (b) b.remove(); } } catch(e){}
         socket.send(JSON.stringify({type:'history', conversationId: currentConversation.id}));
       }
       break;
@@ -182,19 +229,40 @@ function el(q){ return document.querySelector(q) }
 function renderContacts(list){
   const wrap = el('#contacts-list'); if(!wrap) return;
   wrap.innerHTML = '';
+  // helper to clear unread badge visually
+  function clearUnreadForConversationId(id){
+    try{
+      const it = wrap.querySelector(`.contact-item[data-conversation-id="${id}"]`);
+      if (!it) return;
+      const badge = it.querySelector('.unread-badge');
+      if (badge) badge.remove();
+    }catch(e){/* ignore */}
+  }
   list.forEach(c=>{
-    const it = document.createElement('div'); it.className='contact-item'; it.dataset.conversationId = c.id; it.dataset.withUserId = c.withUserId || c.userId || c.with;
+      const it = document.createElement('div'); it.className='contact-item'; it.dataset.conversationId = c.id; it.dataset.withUserId = c.withUserId || c.userId || c.with; 
+      // apply deterministic background color to contact avatar
+      const key = String(c.withUserId || c.id || c.name || '');
+      const av = it.querySelector('.contact-avatar');
+      if (av) av.style.background = colorForString(key);
     const unread = c.unreadCount? `<div class="unread-badge">${c.unreadCount}</div>` : '';
     const last = c.lastMessage ? escapeHtml(c.lastMessage) : '';
     const avatarText = (c.name||'').split(' ').map(s=>s[0]).slice(0,2).join('').toUpperCase();
     it.innerHTML = `<div class="contact-avatar">${avatarText}</div><div class="contact-info"><div class="contact-name">${escapeHtml(c.name||'Contato')}</div><div class="contact-last">${last}</div></div><div class="contact-meta">${unread}</div>`;
+    // now set avatar background color based on user key
+    try { const avAfter = it.querySelector('.contact-avatar'); if (avAfter) avAfter.style.background = colorForString(String(c.withUserId || c.id || c.name || '')); } catch(e){}
     it.addEventListener('click', ()=>{
       currentConversation = {id:c.id, withUserId: it.dataset.withUserId, donationId:c.donationId};
       document.getElementById('conv-title').textContent = c.name || 'Conversa';
+      // visually clear unread badge for this conversation
+      clearUnreadForConversationId(c.id);
+      // optionally notify server that we've read this conversation
+      try { if (socket && socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ type: 'read', conversationId: c.id })); } catch(e){}
       // request history
-      socket.send(JSON.stringify({type:'history', conversationId:c.id}));
+      try { socket.send(JSON.stringify({type:'history', conversationId:c.id})); } catch(e){}
     });
     wrap.appendChild(it);
+    // animate contact entry
+    try{ it.classList.add('enter'); setTimeout(()=> it.classList.remove('enter'), 380); }catch(e){}
   })
 
   // wire search input
@@ -213,6 +281,18 @@ function renderContacts(list){
 function renderMessages(msgs){
   const wrap = el('#messages'); if(!wrap) return; wrap.innerHTML='';
   if(!msgs || !msgs.length){ wrap.innerHTML = `<div class="no-conversation">Sem mensagens nesta conversa.</div>`; return; }
+  // Ensure messages are ordered oldest -> newest so the latest message
+  // is rendered last and visible when we scroll to the bottom.
+  try {
+    msgs = msgs.slice().sort((a,b)=>{
+      const ta = a.ts || a.createdAt || a.date || 0;
+      const tb = b.ts || b.createdAt || b.date || 0;
+      const na = (typeof ta === 'string') ? Date.parse(ta) : (ta || 0);
+      const nb = (typeof tb === 'string') ? Date.parse(tb) : (tb || 0);
+      return (na || 0) - (nb || 0);
+    });
+  } catch(e){ /* if sorting fails, fall back to provided order */ }
+
   msgs.forEach(m=> appendMessage(m));
   wrap.scrollTop = wrap.scrollHeight;
 }
@@ -221,15 +301,31 @@ function appendMessage(m){
   const wrap = el('#messages'); if(!wrap) return;
   // ensure conv meta shows who we're talking to when messages arrive
   ensureMetaFromMessage(m);
+  // Prevent duplicate rendering: compute a stable key and skip if already present
+  try {
+    const keyRaw = m.id ? String(m.id) : `${m.from||''}|${m.ts||''}|${(m.text||'').slice(0,200)}`;
+    const key = encodeURIComponent(keyRaw);
+    if (wrap.querySelector(`[data-msg-key="${key}"]`)) return; // already rendered
+  } catch(e) { /* ignore and continue */ }
   const fromMe = (typeof m.fromMe !== 'undefined') ? m.fromMe : (m.from === currentUserId || m.from === String(currentUserId));
   const row = document.createElement('div'); row.className = 'msg-wrap';
-  const avatarHtml = `<div class="msg-avatar">${(m.fromName||'U').split(' ').map(s=>s[0]).slice(0,2).join('').toUpperCase()}</div>`;
+  try { if (m.id) row.dataset.msgKey = encodeURIComponent(String(m.id)); else row.dataset.msgKey = encodeURIComponent(`${m.from||''}|${m.ts||''}|${(m.text||'').slice(0,200)}`); } catch(e){}
+  const initials = (m.fromName||'U').split(' ').map(s=>s[0]).slice(0,2).join('').toUpperCase();
+  const avatarHtml = `<div class="msg-avatar">${initials}</div>`;
   const msgDiv = document.createElement('div'); msgDiv.className = 'msg ' + (fromMe? 'me':'incoming');
   const textHtml = `<div class="text">${escapeHtml(m.text)}</div><span class="time">${formatTime(m.ts)}</span>`;
   msgDiv.innerHTML = textHtml;
   if(fromMe){ row.appendChild(msgDiv); }
-  else { row.appendChild(document.createElement('div')); row.querySelector('div').outerHTML = avatarHtml; row.appendChild(msgDiv); }
+  else {
+    // create avatar element so we can apply color
+    const avDiv = document.createElement('div'); avDiv.className = 'msg-avatar'; avDiv.textContent = initials;
+    try{ avDiv.style.background = colorForString(String(m.from || m.fromName || initials)); }catch(e){}
+    row.appendChild(avDiv);
+    row.appendChild(msgDiv);
+  }
   wrap.appendChild(row);
+  // animate message entry
+  try { row.classList.add('msg-enter'); setTimeout(()=> row.classList.remove('msg-enter'), 380); } catch(e){}
   wrap.scrollTop = wrap.scrollHeight;
 }
 
@@ -237,6 +333,19 @@ function escapeHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;'
 function formatTime(ts){ try{ const d = ts ? new Date(ts) : new Date(); return d.toLocaleString(); }catch(e){ return '' } }
 
 document.addEventListener('DOMContentLoaded', ()=>{
+  // ensure page doesn't show global scrollbars: measure header and set #container height
+  try{
+    const header = document.getElementById('header');
+    const cont = document.getElementById('container');
+    if (header && cont){
+      const h = header.offsetHeight || 0;
+      // expose CSS var for container height calc if needed
+      document.documentElement.style.setProperty('--header-height', h + 'px');
+      cont.style.height = `calc(100vh - ${h}px)`;
+      cont.style.margin = '0 auto';
+      cont.style.overflow = 'hidden';
+    }
+  }catch(e){}
   // If page was opened with intent to chat, show the userName immediately
   try {
     const pendingQuick = localStorage.getItem('chat_open_with');
@@ -252,6 +361,12 @@ document.addEventListener('DOMContentLoaded', ()=>{
   } catch(e){}
 
   connectSocket();
+  // Recompute container height on window resize to remain responsive
+  try{ window.addEventListener('resize', ()=>{
+    const header = document.getElementById('header');
+    const cont = document.getElementById('container');
+    if (header && cont){ const h = header.offsetHeight || 0; cont.style.height = `calc(100vh - ${h}px)`; document.documentElement.style.setProperty('--header-height', h + 'px'); }
+  }); }catch(e){}
   // If another page requested to open a conversation, process it now (WS -> HTTP -> local fallback)
   (async function(){
     try {

@@ -9,6 +9,41 @@
   <link rel="stylesheet" href="assets/css/homepage/homepage.css">
 </head>
 <body class="chat-page">
+
+  <div class="container">
+            <div id="header">
+            <img src="/assets/img/logo.avif" alt="logo">
+
+            <div id="header-buttons">
+
+                <div class="nav-item" onclick="window.location.href='./homepage.html'">
+                    <img src="assets/img/homepage/heart.svg" alt="">
+                    <button type="button" class="nav-btn ">Doações</button>
+                </div>
+                <div class="nav-item" onclick="window.location.href='./historico.html'">
+                    <img src="assets/img/homepage/history.svg" alt="">
+                    <button type="button" class="nav-btn">Histórico</button>
+                </div>
+                <div class="nav-item" onclick="window.location.href='./adicionar.html'">
+                    <img src="assets/img/homepage/add.svg" alt="">
+                    <button type="button" class="nav-btn">Adicionar</button>
+                </div>
+                <div class="nav-item" onclick="window.location.href='./chat.html'">
+                    <img src="assets/img/homepage/chat.svg" alt="">
+                    <button type="button" class="nav-btn">Chat</button>
+                </div>
+                <div class="nav-item" onclick="window.location.href='./perfil.html'">
+                    <img src="assets/img/homepage/user.svg" alt="">
+                    <button type="button" class="nav-btn">Perfil</button>
+                </div>
+                <div class="nav-item">
+                    <button type="button" class="logout-btn">Logout</button>
+                </div>
+            </div>
+        </div>
+
+
+
   <div id="container">
     <div id="header">
       <h2>Mensagens</h2>
@@ -18,7 +53,7 @@
       <aside class="contacts-panel">
         <div class="contacts-header">
           <h3>Conversas</h3>
-          <input id="contacts-search" placeholder="Buscar contatos" />
+          <input id="contacts-search" placeholder="Buscar interessados" />
         </div>
         <div id="contacts-list" class="contacts-list"></div>
       </aside>
@@ -37,6 +72,7 @@
         </form>
       </section>
     </div>
+  </div>
   </div>
 
   <script src="assets/js/config.js"></script>

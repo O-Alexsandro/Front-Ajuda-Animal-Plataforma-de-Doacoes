@@ -1,10 +1,14 @@
 :root{ --primary: #FF6B35; --accent:#ff9b6b; --muted:#9aa0a6; --bg:#fafafa; --card:#ffffff }
+#*{box-sizing:border-box}
+/* make viewport fixed and hide global scrollbars; inner panels keep their own scroll */
 *{box-sizing:border-box}
-body{font-family:Inter,system-ui,Arial,sans-serif;background:var(--bg);color:#1f2937;margin:0}
-#container{max-width:1200px;margin:18px auto;padding:0 12px}
+html, body { height: 100vh; margin: 0; overflow: hidden; }
+body{font-family:Inter,system-ui,Arial,sans-serif;background:var(--bg);color:#1f2937}
+#container{/* height will be computed dynamically to fit under header */ display:flex; flex-direction:column}
+#container{max-width:1200px;margin:0 auto;padding:0 12px}
 #header{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:var(--card);border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.04)}
-.chat-page{padding:18px 0}
-.chat-inner{display:flex;gap:18px}
+.chat-page{padding:0}
+.chat-inner{display:flex;gap:32px;flex:1;min-height:0;margin-top: 12px;}
 .contacts-panel{width:320px;background:var(--card);border-radius:12px;padding:14px;box-shadow:0 8px 30px rgba(16,24,40,0.06);display:flex;flex-direction:column}
 .contacts-header{display:flex;flex-direction:column;gap:10px}
 .contacts-header h3{margin:0;font-size:1.05rem}
@@ -12,6 +16,12 @@ body{font-family:Inter,system-ui,Arial,sans-serif;background:var(--bg);color:#1f
 .contacts-list{margin-top:10px;display:flex;flex-direction:column;gap:8px;max-height:68vh;overflow:auto}
 .contact-item{display:flex;align-items:center;gap:12px;padding:8px;border-radius:10px;cursor:pointer}
 .contact-item:hover{background:linear-gradient(90deg,rgba(255,107,53,0.03),rgba(255,107,53,0.01))}
+.contact-item.enter{animation:slideRightFade .32s cubic-bezier(.2,.9,.3,1) both}
+
+@keyframes slideRightFade{
+	from{opacity:0;transform:translateX(-8px)}
+	to{opacity:1;transform:translateX(0)}
+}
 .contact-avatar{width:48px;height:48px;border-radius:50%;background:linear-gradient(180deg,#f2f2f2,#e8e8e8);flex:0 0 48px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#555}
 .contact-info{flex:1;min-width:0}
 .contact-name{font-weight:700;font-size:0.98rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -19,11 +29,24 @@ body{font-family:Inter,system-ui,Arial,sans-serif;background:var(--bg);color:#1f
 .contact-meta{display:flex;gap:8px;align-items:center}
 .unread-badge{background:var(--primary);color:#fff;font-size:0.75rem;padding:4px 8px;border-radius:999px}
 
-.conversation-panel{flex:1;display:flex;flex-direction:column;background:var(--card);border-radius:12px;padding:0;box-shadow:0 8px 30px rgba(16,24,40,0.06);min-height:420px}
+/* subtle pulse for new unread badge */
+.unread-badge.pulse{animation:badgePulse 900ms ease-out 0s 2}
+@keyframes badgePulse{0%{transform:scale(1)}50%{transform:scale(1.12)}100%{transform:scale(1)}}
+
+.conversation-panel{flex:1;display:flex;flex-direction:column;background:var(--card);border-radius:12px;padding:0;box-shadow:0 8px 30px rgba(16,24,40,0.06);min-height:0;min-height:420px}
 .conv-header{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #f3f3f3}
 #conv-title{font-weight:800}
 .conv-sub{color:var(--muted);font-size:0.9rem}
-.messages{flex:1;padding:18px;overflow:auto;display:flex;flex-direction:column;gap:12px;background:linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.3))}
+.messages{flex:1;padding:18px;overflow:auto;display:flex;flex-direction:column;gap:12px;background:linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.3));min-height:0}
+
+/* Smooth scrolling and message entry animation */
+.messages{scroll-behavior:smooth}
+.msg-enter{animation:slideUpFade .32s cubic-bezier(.2,.9,.3,1) both}
+
+@keyframes slideUpFade{
+	from{opacity:0;transform:translateY(8px) scale(.995)}
+	to{opacity:1;transform:translateY(0) scale(1)}
+}
 
 .msg-wrap{display:flex;gap:12px;align-items:flex-end}
 .msg{max-width:72%;padding:10px 14px;border-radius:14px;background:#f1f5f9;color:#111;position:relative;box-shadow:0 4px 12px rgba(16,24,40,0.04)}
@@ -34,6 +57,7 @@ body{font-family:Inter,system-ui,Arial,sans-serif;background:var(--bg);color:#1f
 .msg.me::after{content:'';position:absolute;right:-8px;bottom:6px;border-width:8px 0 8px 8px;border-style:solid;border-color:transparent transparent transparent var(--primary)}
 .msg.incoming{margin-right:auto;background:#fff;border:1px solid #eef2f6}
 .msg.incoming::before{content:'';position:absolute;left:-8px;bottom:6px;border-width:8px 8px 8px 0;border-style:solid;border-color:transparent #fff transparent transparent}
+.msg.me .time{ color: rgba(255,255,255,0.95); }
 
 .msg-avatar{width:36px;height:36px;border-radius:50%;background:#eee;display:flex;align-items:center;justify-content:center;font-weight:700;color:#555;flex:0 0 36px}
 
