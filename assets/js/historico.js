@@ -262,7 +262,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (btnMsg){
                     btnMsg.addEventListener('click', () => {
-                        // try open mail client if email present, else try tel, else notify
+                        const idDoacao = donation.id || donation._id || donation.codigo || donation.idDoacao || '';
+                        const idUsuarioLocal = it.dataset.userId || idUsuario || '';
+                        // prefer in-app chat if available
+                        if (window.chatOpenWith && idUsuarioLocal){
+                            try {
+                                window.chatOpenWith(idUsuarioLocal, idDoacao);
+                                return;
+                            } catch(e){ console.warn('chat open failed', e); }
+                        }
+
+                        // fallback: try open mail client if email present, else try tel, else notify
                         const parts = emailText.split('•').map(s => s.trim());
                         const possibleEmail = parts[0] || '';
                         if (possibleEmail && possibleEmail.includes('@')){

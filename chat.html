@@ -1,11 +1,45 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat</title>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat</title>
+  <link rel="stylesheet" href="assets/css/chat/chat.css">
+  <link rel="stylesheet" href="assets/css/homepage/homepage.css">
 </head>
-<body>
-    
+<body class="chat-page">
+  <div id="container">
+    <div id="header">
+      <h2>Mensagens</h2>
+    </div>
+
+    <div class="chat-inner">
+      <aside class="contacts-panel">
+        <div class="contacts-header">
+          <h3>Conversas</h3>
+          <input id="contacts-search" placeholder="Buscar contatos" />
+        </div>
+        <div id="contacts-list" class="contacts-list"></div>
+      </aside>
+
+      <section class="conversation-panel">
+        <div class="conv-header">
+          <div id="conv-title">Selecione uma conversa</div>
+          <div id="conv-meta"></div>
+        </div>
+
+        <div id="messages" class="messages"></div>
+
+        <form id="message-form" class="message-form">
+          <input id="message-input" placeholder="Escreva uma mensagem..." autocomplete="off" />
+          <button type="submit" id="send-btn">Enviar</button>
+        </form>
+      </section>
+    </div>
+  </div>
+
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/chat.js" defer></script>
 </body>
 </html>
