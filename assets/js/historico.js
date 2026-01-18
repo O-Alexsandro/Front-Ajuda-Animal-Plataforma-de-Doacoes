@@ -101,17 +101,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     .replace(/_/g, ' ')
                     .replace(/\b\w/g, c => c.toUpperCase())
                     : 'Pendente';
+                const conditionClass = statusText.toLowerCase().replace(/\s+/g, '-');
             const imgUrl = resolveImageUrl(donation.imagem);
 
             card.innerHTML = `
                 ${imgUrl ? `<img src="${imgUrl}" alt="img" class="card-img" />` : ''}
-                <div class="title">${donation.titulo || 'Sem título'}</div>
-                <div class="description">${descricao}</div>
-                <div class="meta">
-                    <span>${donation.categoria || ''}</span>
-                    <span>${donation.cidade || ''}</span>
+                <div class="card-body">
+                    <div class="card-tags">
+                        <span class="tag">${donation.categoria || ''}</span>
+                        <span class="condition-pill ${conditionClass}">${statusText}</span>
+                    </div>
+                    <div class="title">${donation.titulo || 'Sem título'}</div>
+                    <div class="description">${descricao}</div>
+                    <div class="card-meta">
+                        <span>${donation.cidade || ''}</span>
+                    </div>
                 </div>
-                ${donation.status ? `<span class="${statusClass}">${statusText}</span>` : ''}
             `;
             card.addEventListener('click', () => openModal(donation, false, true));
             interessesList.appendChild(card);
@@ -152,18 +157,27 @@ document.addEventListener('DOMContentLoaded', () => {
             card.className = 'card';
             const descricao = d.descricao ? d.descricao.substring(0, 100) + (d.descricao.length > 100 ? '...' : '') : '';
             const statusClass = d.status ? `status-badge ${d.status.toLowerCase()}` : '';
-            const statusText = d.status ? d.status : 'Ativo';
+            let statusText = d.status ? d.status : 'Ativo';
+            if (d.status) {
+                statusText = d.status.toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                if (statusText === 'Em Andamento') statusText = 'Em andamento';
+            }
+            const conditionClass = statusText.toLowerCase().replace(/\s+/g, '-').replace(/_/g, '-');
             const imgUrl = resolveImageUrl(d.imagem);
 
             card.innerHTML = `
                 ${imgUrl ? `<img src="${imgUrl}" alt="img" class="card-img" />` : ''}
-                <div class="title">${d.titulo || 'Sem título'}</div>
-                <div class="description">${descricao}</div>
-                <div class="meta">
-                    <span>${d.categoria || ''}</span>
-                    <span>${d.cidade || ''}</span>
+                <div class="card-body">
+                    <div class="card-tags">
+                        <span class="tag">${d.categoria || ''}</span>
+                        <span class="condition-pill ${conditionClass}">${statusText}</span>
+                    </div>
+                    <div class="title">${d.titulo || 'Sem título'}</div>
+                    <div class="description">${descricao}</div>
+                    <div class="card-meta">
+                        <span>${d.cidade || ''}</span>
+                    </div>
                 </div>
-                ${d.status ? `<span class="${statusClass}">${statusText}</span>` : ''}
             `;
             card.addEventListener('click', () => openModal(d, true, false));
             minhasList.appendChild(card);
@@ -339,7 +353,13 @@ document.addEventListener('DOMContentLoaded', () => {
     function buildModalView(d, editable, isInterest){
         const imgHtml = resolveImageUrl(d.imagem) ? `<img class="modal-img" src="${resolveImageUrl(d.imagem)}" alt="img"/>` : '';
         const statusValue = isInterest ? d.statusInteresse : d.status;
-        const statusHtml = statusValue ? `<div style="margin-top:8px"><span class="status-badge ${String(statusValue).toLowerCase()}">${statusValue}</span></div>` : '';
+        let statusText = statusValue || '';
+        if (!isInterest && statusValue) {
+            statusText = statusValue.toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+            if (statusText === 'Em Andamento') statusText = 'Em andamento';
+        }
+        const conditionClass = statusText ? statusText.toLowerCase().replace(/\s+/g, '-').replace(/_/g, '-') : '';
+        const statusHtml = statusText ? `<span class="condition-pill ${conditionClass}">${statusText}</span>` : '';
         
         let editButtons = '';
         if (editable) {
@@ -352,7 +372,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         } else if (isInterest) {
             editButtons = `
-                <div class="modal-actions">
+                <div class="modal-actions" style="justify-content: flex-start;">
                     <button id="modal-recusar-btn" class="btn danger">Cancelar Interesse</button>
                 </div>
             `;
@@ -364,10 +384,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${imgHtml}
                     <div class="modal-body">
                         <div class="title">${d.titulo || ''}</div>
-                        <div class="meta">${d.categoria || ''} • ${d.estadoConservacao || ''}</div>
+                        <div class="card-tags">
+                            <span class="tag">${d.categoria || ''}</span>
+                            ${statusHtml}
+                            <span class="condition-pill">${d.estadoConservacao || ''}</span>
+                        </div>
                         <p style="margin-top:10px">${d.descricao || ''}</p>
                         <div style="margin-top:10px">Local: ${d.cidade || ''} - ${d.estado || ''}</div>
-                        ${statusHtml}
                         ${editButtons}
                     </div>
                 </div>
