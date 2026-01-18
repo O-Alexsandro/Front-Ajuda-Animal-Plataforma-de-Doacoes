@@ -81,6 +81,13 @@
         set('rua', payload.rua || payload.street || '');
         set('cidade', payload.cidade || payload.city || '');
         set('estado', payload.estado || payload.state || '');
+        // set account type
+        const pill = $('.pill-ngo');
+        if (pill) {
+            let tipo = payload.tipoDeConta || 'ONG';
+            if (tipo === 'ADMIN' || tipo === 'USUÁRIO') tipo = 'PROTETOR';
+            pill.textContent = tipo;
+        }
     }
 
     function valueOrPlaceholder(id){ const el = document.getElementById(id); if (!el) return ''; const v = el.value && el.value.trim(); return v ? v : (el.placeholder || ''); }
