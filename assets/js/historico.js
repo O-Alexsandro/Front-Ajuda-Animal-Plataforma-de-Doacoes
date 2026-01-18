@@ -99,23 +99,34 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!items.length) return interessesList.innerHTML = '<div class="card">Nenhum interesse encontrado.</div>';
         interessesList.innerHTML = '';
         items.forEach(it => {
-            // each interest may contain a donation payload or an id pointing to donation
-            const donation = it.doacao || it; // adapt based on API shape
+            // each interest contains doacaoResumo
+            const donation = it.doacaoResumo;
             const card = document.createElement('div');
             card.className = 'card';
             const descricao = donation.descricao ? donation.descricao.substring(0, 100) + (donation.descricao.length > 100 ? '...' : '') : '';
-            const statusClass = donation.statusInteresse ? `status-badge ${String(donation.statusInteresse).toLowerCase()}` : '';
-                const _rawStatus = donation.statusInteresse || it.statusInteresse || '';
+            const statusClass = it.statusInteresse ? `status-badge ${String(it.statusInteresse).toLowerCase()}` : '';
+                const _rawStatus = it.statusInteresse || '';
                 const statusText = _rawStatus ? String(_rawStatus)
                     .toLowerCase()
                     .replace(/_/g, ' ')
                     .replace(/\b\w/g, c => c.toUpperCase())
                     : 'Pendente';
                 const conditionClass = statusText.toLowerCase().replace(/\s+/g, '-');
-            const imgUrl = resolveImageUrl(donation.imagem);
+            let mediaHtml = '';
+            if (donation.imagens && donation.imagens.length > 0) {
+                const displayControls = donation.imagens.length > 1 ? '' : 'style="display:none"';
+                mediaHtml = `
+                    <div class="card-media">
+                        <img src="${resolveImageUrl(donation.imagens[0])}" alt="img" class="card-img" />
+                        <button class="carousel-btn prev" aria-label="Previous image" ${displayControls}>&#10094;</button>
+                        <button class="carousel-btn next" aria-label="Next image" ${displayControls}>&#10095;</button>
+                        <div class="carousel-counter" ${displayControls}>1/${donation.imagens.length}</div>
+                    </div>
+                `;
+            }
 
             card.innerHTML = `
-                ${imgUrl ? `<img src="${imgUrl}" alt="img" class="card-img" />` : ''}
+                ${mediaHtml}
                 <div class="card-body">
                     <div class="card-tags">
                         <span class="tag">${donation.categoria || ''}</span>
@@ -128,7 +139,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>
             `;
-            card.addEventListener('click', () => openModal(donation, false, true));
+            // add carousel functionality if multiple images
+            if (donation.imagens && donation.imagens.length > 1) {
+                const imgEl = card.querySelector('.card-img');
+                const prevBtn = card.querySelector('.carousel-btn.prev');
+                const nextBtn = card.querySelector('.carousel-btn.next');
+                const counter = card.querySelector('.carousel-counter');
+                let index = 0;
+                function updateImage() {
+                    imgEl.style.opacity = 0;
+                    setTimeout(() => {
+                        imgEl.src = resolveImageUrl(donation.imagens[index]);
+                        counter.textContent = `${index + 1}/${donation.imagens.length}`;
+                        imgEl.style.opacity = 1;
+                    }, 200);
+                }
+                prevBtn.onclick = (e) => { e.stopPropagation(); index = (index - 1 + donation.imagens.length) % donation.imagens.length; updateImage(); };
+                nextBtn.onclick = (e) => { e.stopPropagation(); index = (index + 1) % donation.imagens.length; updateImage(); };
+            }
+            card.addEventListener('click', () => openModal(it, false, true));
             interessesList.appendChild(card);
         });
     }
@@ -173,10 +202,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (statusText === 'Em Andamento') statusText = 'Em andamento';
             }
             const conditionClass = statusText.toLowerCase().replace(/\s+/g, '-').replace(/_/g, '-');
-            const imgUrl = resolveImageUrl(d.imagem);
+            let mediaHtml = '';
+            if (d.imagens && d.imagens.length > 0) {
+                const displayControls = d.imagens.length > 1 ? '' : 'style="display:none"';
+                mediaHtml = `
+                    <div class="card-media">
+                        <img src="${resolveImageUrl(d.imagens[0])}" alt="img" class="card-img" />
+                        <button class="carousel-btn prev" aria-label="Previous image" ${displayControls}>&#10094;</button>
+                        <button class="carousel-btn next" aria-label="Next image" ${displayControls}>&#10095;</button>
+                        <div class="carousel-counter" ${displayControls}>1/${d.imagens.length}</div>
+                    </div>
+                `;
+            }
 
             card.innerHTML = `
-                ${imgUrl ? `<img src="${imgUrl}" alt="img" class="card-img" />` : ''}
+                ${mediaHtml}
                 <div class="card-body">
                     <div class="card-tags">
                         <span class="tag">${d.categoria || ''}</span>
@@ -189,6 +229,24 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>
             `;
+            // add carousel functionality if multiple images
+            if (d.imagens && d.imagens.length > 1) {
+                const imgEl = card.querySelector('.card-img');
+                const prevBtn = card.querySelector('.carousel-btn.prev');
+                const nextBtn = card.querySelector('.carousel-btn.next');
+                const counter = card.querySelector('.carousel-counter');
+                let index = 0;
+                function updateImage() {
+                    imgEl.style.opacity = 0;
+                    setTimeout(() => {
+                        imgEl.src = resolveImageUrl(d.imagens[index]);
+                        counter.textContent = `${index + 1}/${d.imagens.length}`;
+                        imgEl.style.opacity = 1;
+                    }, 200);
+                }
+                prevBtn.onclick = (e) => { e.stopPropagation(); index = (index - 1 + d.imagens.length) % d.imagens.length; updateImage(); };
+                nextBtn.onclick = (e) => { e.stopPropagation(); index = (index + 1) % d.imagens.length; updateImage(); };
+            }
             card.addEventListener('click', () => openModal(d, true, false));
             minhasList.appendChild(card);
         });
@@ -206,6 +264,25 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('modal-close-btn')?.addEventListener('click', () => closeModal());
         const closeBtns = modal.querySelectorAll('.modal-close');
         closeBtns.forEach(b => b.addEventListener('click', closeModal));
+        // add carousel functionality for modal if multiple images
+        const modalDonation = isInterest ? donation.doacaoResumo : donation;
+        if (modalDonation.imagens && modalDonation.imagens.length > 1) {
+            const imgEl = modalContent.querySelector('.modal-img');
+            const prevBtn = modalContent.querySelector('.carousel-btn.prev');
+            const nextBtn = modalContent.querySelector('.carousel-btn.next');
+            const counter = modalContent.querySelector('.carousel-counter');
+            let index = 0;
+            function updateImage() {
+                imgEl.style.opacity = 0;
+                setTimeout(() => {
+                    imgEl.src = resolveImageUrl(modalDonation.imagens[index]);
+                    counter.textContent = `${index + 1}/${modalDonation.imagens.length}`;
+                    imgEl.style.opacity = 1;
+                }, 200);
+            }
+            prevBtn.onclick = (e) => { e.stopPropagation(); index = (index - 1 + modalDonation.imagens.length) % modalDonation.imagens.length; updateImage(); };
+            nextBtn.onclick = (e) => { e.stopPropagation(); index = (index + 1) % modalDonation.imagens.length; updateImage(); };
+        }
     }
 
     async function showInteressesList(donation){
@@ -238,7 +315,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const idUsuario = u?.id || u?.usuarioId || u?._id || u?.codigo || item.usuarioId || item.idUsuario || '';
 
                     html += `
-                        <div class="card interesse-item" data-interest-id="${escapeHtml(interestId)}" data-user-id="${escapeHtml(idUsuario)}" data-index="${idx}" style="width:100%;margin-bottom:10px;padding:12px;border-radius:8px;">
+                        <div class="card interesse-item" data-interest-id="${escapeHtml(interestId)}" data-user-id="${escapeHtml(idUsuario)}" data-user-name="${escapeHtml(nome)}" data-index="${idx}" style="width:100%;margin-bottom:10px;padding:12px;border-radius:8px;">
                             <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
                                 <div style="flex:1;min-width:0">
                                     <div class="title" style="font-weight:600">${escapeHtml(nome)}</div>
@@ -288,25 +365,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     btnMsg.addEventListener('click', () => {
                         const idDoacao = donation.id || donation._id || donation.codigo || donation.idDoacao || '';
                         const idUsuarioLocal = it.dataset.userId || idUsuario || '';
-                        // prefer in-app chat if available
-                        if (window.chatOpenWith && idUsuarioLocal){
-                            try {
-                                window.chatOpenWith(idUsuarioLocal, idDoacao);
-                                return;
-                            } catch(e){ console.warn('chat open failed', e); }
-                        }
-
-                        // fallback: try open mail client if email present, else try tel, else notify
-                        const parts = emailText.split('•').map(s => s.trim());
-                        const possibleEmail = parts[0] || '';
-                        if (possibleEmail && possibleEmail.includes('@')){
-                            window.location.href = `mailto:${possibleEmail}`;
-                        } else if (parts[1]){
-                            const tel = parts[1];
-                            window.location.href = `tel:${tel}`;
-                        } else {
-                            alert('Contato não disponível para este usuário.');
-                        }
+                        const nome = it.dataset.userName || '';
+                        // navigate to chat page with conversation details
+                        location.href = `chat.html?userId=${encodeURIComponent(idUsuarioLocal)}&donationId=${encodeURIComponent(idDoacao)}&userName=${encodeURIComponent(nome)}&donationTitle=${encodeURIComponent(donation.titulo)}`;
                     });
                 }
 
@@ -361,11 +422,23 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function buildModalView(d, editable, isInterest){
-        const imgHtml = resolveImageUrl(d.imagem) ? `<img class="modal-img" src="${resolveImageUrl(d.imagem)}" alt="img"/>` : '';
-        const statusValue = isInterest ? d.statusInteresse : d.status;
+        const donation = isInterest ? d.doacaoResumo : d;
+        let imgHtml = '';
+        if (donation.imagens && donation.imagens.length > 0) {
+            const displayControls = donation.imagens.length > 1 ? '' : 'style="display:none"';
+            imgHtml = `
+                <div class="card-media">
+                    <img class="modal-img" src="${resolveImageUrl(donation.imagens[0])}" alt="img"/>
+                    <button class="carousel-btn prev" aria-label="Previous image" ${displayControls}>&#10094;</button>
+                    <button class="carousel-btn next" aria-label="Next image" ${displayControls}>&#10095;</button>
+                    <div class="carousel-counter" ${displayControls}>1/${donation.imagens.length}</div>
+                </div>
+            `;
+        }
+        const statusValue = isInterest ? d.statusInteresse : donation.status;
         let statusText = statusValue || '';
-        if (!isInterest && statusValue) {
-            statusText = statusValue.toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        if (statusValue) {
+            statusText = statusValue.replace(/_/g, ' ');
             if (statusText === 'Em Andamento') statusText = 'Em andamento';
         }
         const conditionClass = statusText ? statusText.toLowerCase().replace(/\s+/g, '-').replace(/_/g, '-') : '';
@@ -393,14 +466,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div style="display:flex; gap:14px; align-items:flex-start">
                     ${imgHtml}
                     <div class="modal-body">
-                        <div class="title">${d.titulo || ''}</div>
+                        <div class="title">${donation.titulo || ''}</div>
                         <div class="card-tags">
-                            <span class="tag">${d.categoria || ''}</span>
+                            <span class="tag">${donation.categoria || ''}</span>
                             ${statusHtml}
-                            <span class="condition-pill">${d.estadoConservacao || ''}</span>
+                            <span class="condition-pill">${donation.estadoConservacao || ''}</span>
                         </div>
-                        <p style="margin-top:10px">${d.descricao || ''}</p>
-                        <div style="margin-top:10px">Local: ${d.cidade || ''} - ${d.estado || ''}</div>
+                        <p style="margin-top:10px">${donation.descricao || ''}</p>
+                        <div style="margin-top:10px">Local: ${donation.cidade || ''} - ${donation.estado || ''}</div>
                         ${editButtons}
                     </div>
                 </div>
@@ -416,7 +489,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const preview = modalContent.querySelector('.preview-wrap');
         // show existing image preview if available
         if (preview) {
-            const existing = resolveImageUrl(donation.imagem);
+            const existing = resolveImageUrl(donation.imagens && donation.imagens.length > 0 ? donation.imagens[0] : null);
             if (existing) preview.innerHTML = `<img src="${existing}" class="modal-img" />`;
         }
         if (fileInput){
@@ -431,7 +504,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function buildEditForm(d){
-        const imgUrl = resolveImageUrl(d.imagem);
+        const imgUrl = resolveImageUrl(d.imagens && d.imagens.length > 0 ? d.imagens[0] : null);
         return `
             <div style="display:flex; gap:14px; align-items:center">
                 <div class="modal-body">
@@ -528,7 +601,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const headers = token ? { 'Authorization': 'Bearer ' + token } : {};
         try {
             const res = await fetch(`${BACKEND_BASE_URL}/doacoes/${encodeURIComponent(id)}`, { method: 'DELETE', headers });
-            if (!res.ok) throw new Error('Falha ao excluir: ' + res.status);
+            if (!res.ok) throw new Error('Falha ao excluir, recuse todos os interessados antes de excluir.');
             showModalMessage('Doação excluída.');
             await loadMinhasDoacoes();
             closeModal();
@@ -539,21 +612,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function confirmRecusar(donation){
         if (!confirm('Confirma que deseja cancelar seu interesse nesta doação?')) return;
-        // try to determine interest id and usuario id
-        const interestId = donation.id || donation._id || donation.codigo || donation.idDoacao || donation.idInteresse || donation.idInteresse || '';
+        // try to determine interesse id and usuario id
+        const interesseId = donation.interesseId || '';
         const usuarioId = donation.usuarioId || localStorage.getItem('userId') || (donation.usuario && (donation.usuario.id || donation.usuario.usuarioId)) || '';
-        if (!interestId){ showModalMessage('ID do interesse ausente. Não foi possível recusar.', true); return; }
+        if (!interesseId){ showModalMessage('ID do interesse ausente. Não foi possível cancelar.', true); return; }
 
         const token = localStorage.getItem('token');
         const headers = token ? { 'Authorization': 'Bearer ' + token } : { 'Content-Type': 'application/json' };
         try {
             let res;
             if (usuarioId) {
-                // new route: /interesse/cancelar/{idUsuario}/{idInteresse}
-                res = await fetch(`${BACKEND_BASE_URL}/interesse/cancelar/${encodeURIComponent(usuarioId)}/${encodeURIComponent(interestId)}`, { method: 'DELETE', headers });
+                // route: /interesse/cancelar/{idUsuario}/{idInteresse}
+                res = await fetch(`${BACKEND_BASE_URL}/interesse/cancelar/${encodeURIComponent(usuarioId)}/${encodeURIComponent(interesseId)}`, { method: 'DELETE', headers });
             } else {
-                // fallback to older route if usuarioId not known
-                res = await fetch(`${BACKEND_BASE_URL}/interesse/${encodeURIComponent(interestId)}`, { method: 'DELETE', headers });
+                // fallback
+                res = await fetch(`${BACKEND_BASE_URL}/interesse/${encodeURIComponent(interesseId)}`, { method: 'DELETE', headers });
             }
 
             if (!res.ok) throw new Error('Falha ao recusar interesse: ' + res.status);

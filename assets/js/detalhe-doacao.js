@@ -28,6 +28,7 @@
 
     function el(id){ return document.getElementById(id); }
     let currentId = null;
+    let currentImageIndex = 0;
 
     function getUserIdFromToken(){
         try {
@@ -71,33 +72,65 @@
     }
 
     function render(d){
-        // image — update or create image element only, keep overlays (back button, badges)
+        // image — handle multiple images with carousel if needed
         const imgWrap = el('detail-image');
-        const imgSrc = resolveImage(d.imagem || d.images || (d.imagens && d.imagens[0]));
+        const imagens = Array.isArray(d.imagens) ? d.imagens : (d.imagem ? [d.imagem] : (d.images ? d.images : []));
         const existingImg = imgWrap ? imgWrap.querySelector('.detail-main-img') : null;
-        if (imgSrc) {
-            if (existingImg) {
-                if (existingImg.src !== imgSrc) existingImg.src = imgSrc;
-                existingImg.alt = d.titulo || 'Imagem';
-            } else if (imgWrap) {
+        if (imagens.length > 0) {
+            if (!existingImg) {
                 const img = document.createElement('img');
-                img.src = imgSrc;
-                img.alt = d.titulo || 'Imagem';
                 img.className = 'detail-main-img';
                 imgWrap.appendChild(img);
             }
+            const img = imgWrap.querySelector('.detail-main-img');
+            img.src = resolveImage(imagens[0]);
+            img.alt = d.titulo || 'Imagem';
+            currentImageIndex = 0;
+            // add/remove buttons
+            let prevBtn = imgWrap.querySelector('.prev-btn');
+            let nextBtn = imgWrap.querySelector('.next-btn');
+            if (imagens.length > 1) {
+                if (!prevBtn) {
+                    prevBtn = document.createElement('button');
+                    prevBtn.className = 'carousel-btn prev';
+                    prevBtn.innerHTML = '&lt;';
+                    prevBtn.onclick = () => updateImage(-1, imagens);
+                    imgWrap.appendChild(prevBtn);
+                }
+                if (!nextBtn) {
+                    nextBtn = document.createElement('button');
+                    nextBtn.className = 'carousel-btn next';
+                    nextBtn.innerHTML = '&gt;';
+                    nextBtn.onclick = () => updateImage(1, imagens);
+                    imgWrap.appendChild(nextBtn);
+                }
+            } else {
+                if (prevBtn) prevBtn.remove();
+                if (nextBtn) nextBtn.remove();
+            }
         } else {
             if (existingImg) existingImg.remove();
+            // remove buttons if any
+            const prevBtn = imgWrap.querySelector('.prev-btn');
+            const nextBtn = imgWrap.querySelector('.next-btn');
+            if (prevBtn) prevBtn.remove();
+            if (nextBtn) nextBtn.remove();
         }
 
         el('detail-title').textContent = d.titulo || d.title || 'Sem título';
         el('detail-desc').textContent = d.descricao || d.description || '';
 
-        const meta = [];
-        if (d.categoria) meta.push(d.categoria);
-        if (d.cidade) meta.push(d.cidade);
-        if (d.estado) meta.push(d.estado);
-        el('detail-meta').textContent = meta.join(' • ');
+        // Published date
+        if (d.dataCadastro) {
+            const date = new Date(d.dataCadastro);
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            const formatted = `${day}/${month}/${year}`;
+            el('detail-meta').textContent = `Publicado em ${formatted}`;
+        } else {
+            el('detail-meta').textContent = '';
+        }
 
         // show donor name if provided. handle possible nested structures
         const donorName = (function(){
@@ -119,6 +152,10 @@
                 if (d.usuario.nome) return d.usuario.nome;
                 if (d.usuario.name) return d.usuario.name;
             }
+            if (d.criador && typeof d.criador === 'object'){
+                if (d.criador.nome) return d.criador.nome;
+                if (d.criador.name) return d.criador.name;
+            }
             return '';
         })();
         // populate owner name/email/avatar into new owner card
@@ -134,6 +171,7 @@
             if (d.proprietario && d.proprietario.email) return d.proprietario.email;
             if (d.ong && d.ong.email) return d.ong.email;
             if (d.ownerEmail) return d.ownerEmail;
+            if (d.criador && d.criador.email) return d.criador.email;
             return '';
         })();
         if (ownerEmailEl) ownerEmailEl.textContent = donorEmail || '';
@@ -142,6 +180,7 @@
             let avatarSrc = null;
             if (d.usuario && (d.usuario.avatar || d.usuario.foto)) avatarSrc = d.usuario.avatar || d.usuario.foto;
             if (d.foto || d.avatar) avatarSrc = avatarSrc || d.foto || d.avatar;
+            if (d.criador && (d.criador.avatar || d.criador.foto)) avatarSrc = d.criador.avatar || d.criador.foto;
             if (avatarSrc) {
                 const url = resolveImage(avatarSrc);
                 ownerAvatarEl.style.backgroundImage = `url('${url}')`;
@@ -188,6 +227,7 @@
             if (obj.ownerId) return obj.ownerId;
             if (obj.usuarioId) return obj.usuarioId;
             if (obj.owner) return obj.owner;
+            if (obj.criador && (obj.criador.id || obj.criador._id)) return obj.criador.id || obj.criador._id;
             return null;
         }
         const ownerId = getOwnerId(d);
@@ -269,6 +309,18 @@
         }
             // initialize or update map after rendering content
             try { initMapForDetail(d); } catch(e){ console.warn('Map init failed', e); }
+        }
+
+        function updateImage(direction, imagens) {
+            currentImageIndex = (currentImageIndex + direction + imagens.length) % imagens.length;
+            const img = el('detail-image').querySelector('.detail-main-img');
+            if (img) {
+                img.style.opacity = 0;
+                setTimeout(() => {
+                    img.src = resolveImage(imagens[currentImageIndex]);
+                    img.style.opacity = 1;
+                }, 200);
+            }
         }
 
         /* Map helpers: try to extract coordinates from common fields, else geocode via Nominatim */

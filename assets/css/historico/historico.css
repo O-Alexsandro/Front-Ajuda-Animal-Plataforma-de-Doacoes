@@ -197,11 +197,11 @@ body {
 .modal{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:999 }
 .modal[aria-hidden="false"]{ display:flex }
 .modal-backdrop{ position:absolute; inset:0; background:rgba(0,0,0,0.45) }
-.modal-card{ position:relative; width:960px; max-width:calc(100% - 40px); background:#fff; border-radius:12px; padding:24px; z-index:2; display:flex; gap:18px; box-shadow: 0 20px 60px rgba(0,0,0,0.3) }
-.modal-close{ position:absolute; right:16px; top:12px; background:transparent; border:none; font-size:20px; cursor:pointer; color: var(--text-color); transition: color 150ms ease; }
+.modal-card{ position:relative; width:900px; max-width:calc(100% - 40px); background:#fff; border-radius:12px; padding:24px; z-index:2; display:flex; gap:18px; box-shadow: 0 20px 60px rgba(0,0,0,0.3) }
+.modal-close{ position:absolute; right:16px; top:0; background:rgba(255,255,255,0.8); border:none; font-size:20px; cursor:pointer; color: var(--text-color); transition: color 150ms ease; z-index: 100; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; }
 .modal-close:hover { color: var(--primary-color); }
 .modal-body{ flex:1 }
-.modal-img{ width:320px; max-height:420px; object-fit:cover; border-radius:8px }
+.modal-img{ width:300px; max-height:350px; object-fit:cover; border-radius:8px }
 .modal-actions{ display:flex; gap:12px; margin-top:16px; justify-content:flex-end; flex-wrap: wrap; }
 .btn{ padding:10px 16px; border-radius:8px; border:none; cursor:pointer; font-weight: 600; font-size: 0.95rem; transition: all 150ms ease; }
 .btn.primary{ background:var(--primary-color); color:#fff }
@@ -214,7 +214,7 @@ body {
 .form-row{ display:flex; flex-direction:column; gap:6px; margin-bottom:10px }
 .form-row input[type=text], .form-row textarea, .form-row select{ padding:8px 10px; border:1px solid var(--border); border-radius:8px; width:100%; box-sizing:border-box }
 .preview-wrap{ margin-top:6px }
-.preview-wrap img{ width:320px; max-height:420px; object-fit:cover; border-radius:8px; display:block }
+.preview-wrap img{ width:100%; max-height:350px; object-fit:cover; border-radius:8px; display:block }
 
 @media(max-width:960px){ .modal-card{ flex-direction:column } .modal-img{ width:100% } }
 
@@ -241,6 +241,8 @@ body {
 
 .modal-card-inner {
     width: 100%;
+    position: relative;
+    z-index: 1;
 }
 
 .modal-msg {
@@ -248,4 +250,74 @@ body {
     margin-bottom: 16px;
     border-radius: 6px;
     font-weight: 500;
+}
+
+/* Carousel styles */
+.card-media {
+    background: #f6f6f6;
+    height: 240px;
+    display: block;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.card-media .card-img, .card-media .modal-img {
+    width: 100%;
+    height: 240px;
+    object-fit: cover;
+    display: block;
+    transition: opacity 0.2s ease;
+}
+
+/* For modal, adjust height */
+.modal .card-media {
+    height: 500px;
+}
+
+.modal .card-media .modal-img {
+    height: 500px;
+}
+
+.carousel-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255,255,255,0.9);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: var(--primary-color);
+}
+
+.carousel-btn.prev { left: 10px; }
+.carousel-btn.next { right: 10px; }
+
+.carousel-counter {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    background: rgba(255,255,255,0.9);
+    border-radius: 12px;
+    padding: 4px 8px;
+    font-size: 12px;
+    color: #666;
+}
+
+/* For modal, adjust size */
+.modal .card-media {
+    width: 300px;
+    height: 350px;
+}
+
+.modal .card-media .modal-img {
+    width: 300px;
+    height: 350px;
 }

@@ -14,6 +14,7 @@ function createCard(item) {
   const imgEl = document.createElement('img');
   imgEl.alt = escapeHtml(item.title);
   imgEl.className = 'card-img';
+  imgEl.style.opacity = 1;
   media.appendChild(imgEl);
 
   const images = (item.images && item.images.length) ? item.images : ['https://via.placeholder.com/900x600?text=No+Image'];
@@ -24,7 +25,14 @@ function createCard(item) {
   counter.className = 'carousel-counter';
   counter.textContent = '';
 
-  function updateImage() { imgEl.src = images[index]; counter.textContent = `${index + 1}/${images.length}`; }
+  function updateImage() {
+    imgEl.style.opacity = 0;
+    setTimeout(() => {
+      imgEl.src = images[index];
+      counter.textContent = `${index + 1}/${images.length}`;
+      imgEl.style.opacity = 1;
+    }, 200);
+  }
   updateImage();
 
   // carousel controls
@@ -165,7 +173,7 @@ window.loadedData = sampleData.slice(); // fallback
 // Fetch donations from backend and render (falls back to sampleData)
 async function fetchDonations() {
   try {
-    const res = await fetch('http://localhost:8080/doacoes');
+    const res = await fetch('http://localhost:8080/doacoes/disponiveis');
     if (!res.ok) throw new Error('Network response not ok: ' + res.status);
     const data = await res.json();
 
@@ -182,11 +190,11 @@ async function fetchDonations() {
         return [];
       })(),
       tag: d.categoria || d.tag || 'outros',
-      owner: d.usuario?.nome || d.proprietario || d.owner || d.ong || '',
-      location: d.localizacao || d.location || d.cidade || d.city || '',
-      condition: d.condicao || d.condition || d.estado || '',
-      estadoConservacao: d.estadoConservacao || d.estadoConservação || d.estado || d.estado_conservacao || '',
-      tipoDeConta: d.usuario?.tipoDeConta || ''
+      owner: d.criador?.nome || d.usuario?.nome || d.proprietario || d.owner || d.ong || '',
+      location: `${d.cidade || ''}${d.cidade && d.estado ? ', ' : ''}${d.estado || ''}` || d.localizacao || d.location || '',
+      condition: d.estadoConservacao || d.condicao || d.condition || d.estado || '',
+      estadoConservacao: d.estadoConservacao || d.estado_conservacao || d.estado || d.estadoConservacao || '',
+      tipoDeConta: d.criador?.tipoDeConta || d.usuario?.tipoDeConta || ''
     }));
 
     window.loadedData = items;

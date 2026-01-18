@@ -49,6 +49,29 @@ function connectSocket(){
         localStorage.removeItem('chat_open_with');
       }
     } catch(e){ console.warn('processing chat_open_with on ws open failed', e); }
+
+    // Also check URL params for opening conversation
+    const urlParams = new URLSearchParams(window.location.search);
+    const userId = urlParams.get('userId');
+    const donationId = urlParams.get('donationId');
+    const userName = urlParams.get('userName');
+    const donationTitle = urlParams.get('donationTitle');
+    if (userId && donationId){
+      try {
+        // set provisional title if we have a name
+        try { if (userName) document.getElementById('conv-title').textContent = userName; } catch(e){}
+        // set provisional donation meta if present
+        try { if (donationTitle) renderConversationMeta({ name: userName, donationTitle: donationTitle }); } catch(e){}
+        openConversationWith(userId, donationId, userName, donationTitle);
+        // clear URL params
+        const url = new URL(window.location);
+        url.searchParams.delete('userId');
+        url.searchParams.delete('donationId');
+        url.searchParams.delete('userName');
+        url.searchParams.delete('donationTitle');
+        window.history.replaceState(null, null, url);
+      } catch(e){ console.warn('url param open failed', e); }
+    }
   });
 
   socket.addEventListener('message', ev=>{
@@ -425,10 +448,9 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
 // Expose helper to be called from other pages
 window.chatOpenWith = function(userId, donationId, userName, donationTitle){
-  // If we're not on chat page, store request and navigate so the chat page can open it after socket connects
+  // If we're not on chat page, navigate with params so the chat page can open it after socket connects
   if (location.pathname.split('/').pop() !== 'chat.html'){
-    try { localStorage.setItem('chat_open_with', JSON.stringify({userId, donationId, userName, donationTitle})); } catch(e){}
-    location.href = 'chat.html';
+    location.href = `chat.html?userId=${encodeURIComponent(userId)}&donationId=${encodeURIComponent(donationId)}&userName=${encodeURIComponent(userName)}&donationTitle=${encodeURIComponent(donationTitle)}`;
     return;
   }
   openConversationWith(userId, donationId, userName, donationTitle);
