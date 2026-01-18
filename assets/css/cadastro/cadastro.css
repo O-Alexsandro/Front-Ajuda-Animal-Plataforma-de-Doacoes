@@ -17,21 +17,20 @@
 }
 
 body {
-    font-family: var(--font-sans);
-}
-
-
-body {
-    background-image: url(/assets/img/background_login.png);
+    background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url(/assets/img/background_login.png);
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
+    font-family: var(--font-sans);
 }
 
 #header-login {
     width: 100%;
-    height: 100vh;
-    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
 }
 
 #header {
@@ -67,20 +66,15 @@ body {
     background-color: #ff6b35cb;
 }
 
-#header-form {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 40px;
-}
-
 #form-login {
-    width: 40%;
-    height: auto;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    border: 1px solid var(--border);
-    background-color: var(--background-color);
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    width: 100%;
+    max-width: 800px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 40px;
 }
 
 #form-login > h2 {
@@ -105,11 +99,21 @@ body {
 }
 
 #label-input {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    width: 100%;
+}
+
+.field {
     display: flex;
-    flex-direction:column;
-    justify-content: center;
-    margin: 0 auto;
-    width: 90%;
+    flex-direction: column;
+}
+
+.roles-container {
+    grid-column: span 2;
+    display: flex;
+    flex-direction: column;
 }
 
 #label-input > h3 {
@@ -123,23 +127,24 @@ body {
 .label{
     color: var(--text-color);
     font-size: 1.1rem;
-    margin-top: 25px;
     margin-bottom: 5px;
 }
 
 .input {
     width: 100%;
-    padding: 20px;
+    padding: 15px;
     border: none;
     border-radius: 15px;
     border: 1px solid var(--border); 
     outline: none;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .input:hover,
 .input:focus {
     border: 1px solid var(--primary-color);
     outline: none;
+    box-shadow: 0 0 10px rgba(255, 107, 53, 0.3);
 }
 
 #button {
@@ -154,17 +159,20 @@ body {
 #button > button {
     width: 100%;
     padding: 15px;
-    border-radius: 15px;
+    border-radius: 25px;
     border: none;
     outline: none;
-    background-color: var(--primary-color);
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
     color: var(--background-color);
     font-size: 1rem;
     font-weight: 500;
+    transition: background 0.3s ease, transform 0.2s ease;
+    cursor: pointer;
 }
 
 #button > button:hover {
-    background-color: #ff6b35cb;
+    background: linear-gradient(135deg, #ff6b35cb, #4ecdc4cb);
+    transform: translateY(-2px);
 }
 
 /* Role selectable rounded checkbox (stacked vertically) */
@@ -288,5 +296,43 @@ a {
     color: #FF6B35;
     outline: none;
     text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+a:hover {
+    color: #4ECDC4;
+}
+
+.final {
+    text-align: center;
+    color: var(--text-color);
+    font-weight: 300;
+    margin: 5px 20px 20px;
+    font-size: 1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    #form-login {
+        width: 95%;
+        padding: 20px;
+    }
+
+    #form-login > h2 {
+        font-size: 1.5rem;
+    }
+
+    #form-login > h3 {
+        font-size: 1rem;
+    }
+
+    #label-input {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .roles-container {
+        grid-column: span 1;
+    }
 }
 
