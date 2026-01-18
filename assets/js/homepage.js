@@ -57,8 +57,24 @@ function createCard(item) {
   const tagsRow = document.createElement('div');
   tagsRow.className = 'card-tags';
 
-  const title = document.createElement('div');
-  title.innerHTML = `<div style="display:flex;align-items:center;gap:10px"><h3 class='card-title'>${escapeHtml(item.title)}</h3><span class='tag'>${escapeHtml(item.tag)}</span></div>`;
+  const title = document.createElement('h3');
+  title.className = 'card-title';
+  title.textContent = escapeHtml(item.title);
+
+  const badgesContainer = document.createElement('div');
+  badgesContainer.style.display = 'flex';
+  badgesContainer.style.alignItems = 'center';
+  badgesContainer.style.gap = '8px';
+
+  const tagSpan = document.createElement('span');
+  tagSpan.className = 'tag';
+  tagSpan.textContent = escapeHtml(item.tag);
+  badgesContainer.appendChild(tagSpan);
+
+  const conditionSpan = document.createElement('span');
+  conditionSpan.className = 'condition-pill';
+  conditionSpan.textContent = escapeHtml(item.estadoConservacao || item.condition || '');
+  badgesContainer.appendChild(conditionSpan);
 
   const desc = document.createElement('div');
   desc.className = 'card-desc';
@@ -67,10 +83,14 @@ function createCard(item) {
   // sanitize owner and location (remove bullet/degree-like symbols and leading punctuation)
   const cleanOwner = String(item.owner || '').replace(/[°º\u00B0\u25CB\u25E6\u25CF\u2022\u2219•◦]/g, '').replace(/^[^\p{L}\p{N}]+/u, '').trim();
   const cleanLocation = String(item.location || '').replace(/[°º\u00B0\u25CB\u25E6\u25CF\u2022\u2219•◦]/g, '').replace(/^[^\p{L}\p{N}]+/u, '').trim();
+  let cleanTipo = String(item.tipoDeConta || '').trim();
+  if (cleanTipo === 'ADMIN' || cleanTipo === 'USUARIO') {
+    cleanTipo = 'Protetor';
+  }
 
   const meta = document.createElement('div');
   meta.className = 'card-meta';
-  meta.innerHTML = `${cleanOwner ? `<span style="display:flex;align-items:center;gap:8px"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4z\" stroke=\"#777\" stroke-width=\"1.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>${escapeHtml(cleanOwner)}</span>` : ''}${cleanLocation ? `<span style="display:flex;align-items:center;gap:8px"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M21 10c0 6-9 13-9 13S3 16 3 10a9 9 0 1118 0z\" stroke=\"#777\" stroke-width=\"1.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>${escapeHtml(cleanLocation)}</span>` : '' }`;
+  meta.innerHTML = `${cleanOwner ? `<span style="display:flex;align-items:center;gap:8px"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2\" stroke=\"#777\" stroke-width=\"1.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><circle cx=\"12\" cy=\"7\" r=\"4\" stroke=\"#777\" stroke-width=\"1.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>${escapeHtml(cleanOwner)}</span>` : ''}${cleanTipo ? `<span style="display:flex;align-items:center;gap:8px"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z\" stroke=\"#777\" stroke-width=\"1.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>${escapeHtml(cleanTipo)}</span>` : ''}${cleanLocation ? `<span style="display:flex;align-items:center;gap:8px"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z\" stroke=\"#777\" stroke-width=\"1.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>${escapeHtml(cleanLocation)}</span>` : '' }`;
 
   const condition = document.createElement('div');
   condition.className = 'condition-pill';
@@ -84,7 +104,7 @@ function createCard(item) {
   btn.onclick = () => { openDetails(item); };
 
   tagsRow.appendChild(title);
-  tagsRow.appendChild(condition);
+  tagsRow.appendChild(badgesContainer);
 
   body.appendChild(tagsRow);
   body.appendChild(desc);
@@ -162,10 +182,11 @@ async function fetchDonations() {
         return [];
       })(),
       tag: d.categoria || d.tag || 'outros',
-      owner: d.proprietario || d.owner || d.ong || '',
+      owner: d.usuario?.nome || d.proprietario || d.owner || d.ong || '',
       location: d.localizacao || d.location || d.cidade || d.city || '',
       condition: d.condicao || d.condition || d.estado || '',
-      estadoConservacao: d.estadoConservacao || d.estadoConservação || d.estado || d.estado_conservacao || ''
+      estadoConservacao: d.estadoConservacao || d.estadoConservação || d.estado || d.estado_conservacao || '',
+      tipoDeConta: d.usuario?.tipoDeConta || ''
     }));
 
     window.loadedData = items;

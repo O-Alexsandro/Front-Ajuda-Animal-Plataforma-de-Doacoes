@@ -1,5 +1,5 @@
 :root{ --primary: #FF6B35; --accent:#ff9b6b; --muted:#9aa0a6; --bg:#fafafa; --card:#ffffff }
-#*{box-sizing:border-box}
+*{box-sizing:border-box}
 /* make viewport fixed and hide global scrollbars; inner panels keep their own scroll */
 *{box-sizing:border-box}
 html, body { height: 100vh; margin: 0; overflow: hidden; }
