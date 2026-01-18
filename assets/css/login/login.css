@@ -79,7 +79,10 @@ body {
 
 #form-login > h2 {
     text-align: center;
-    color: var(--text-color);
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
     margin: 20px;
     font-size: 2rem;
 }
