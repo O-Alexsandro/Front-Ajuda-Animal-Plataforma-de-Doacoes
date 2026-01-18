@@ -373,3 +373,15 @@ const customCondition = createCustomDropdown(conditionSelect);
 // Export render function for future use
 window.renderCards = renderCards;
 window.openDetails = openDetails;
+
+// logout functionality
+document.addEventListener('DOMContentLoaded', () => {
+    const logoutBtn = document.querySelector('.logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.href = './login.html';
+        });
+    }
+});

@@ -5,6 +5,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const fileInput = form.querySelector('input[name="imagem"]');
     const previewWrap = document.getElementById('image-preview');
 
+    // logout functionality
+    const logoutBtn = document.querySelector('.logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.href = './login.html';
+        });
+    }
+
     function showMessage(text, isError = false) {
         message.textContent = text;
         message.style.color = isError ? '#9b2c2c' : '#2d6a4f';

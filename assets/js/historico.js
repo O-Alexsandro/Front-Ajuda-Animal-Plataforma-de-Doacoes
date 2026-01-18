@@ -7,6 +7,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalContent = document.getElementById('modal-content');
     const modalClose = document.querySelector('.modal-close');
 
+    // logout functionality
+    const logoutBtn = document.querySelector('.logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.href = './login.html';
+        });
+    }
+
     function switchTab(tabName){
         tabButtons.forEach(b => {
             if (b.dataset.tab === tabName) {

@@ -115,6 +115,16 @@
                 if (raw){ try{ applyPlaceholders(JSON.parse(raw)); }catch(e){} }
             }
 
+            // logout functionality
+            const logoutBtn = $('.logout-btn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', () => {
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    window.location.href = './login.html';
+                });
+            }
+
             if (form){
                 form.addEventListener('submit', async function(ev){
                     ev.preventDefault();

@@ -433,3 +433,15 @@ window.chatOpenWith = function(userId, donationId, userName, donationTitle){
   }
   openConversationWith(userId, donationId, userName, donationTitle);
 }
+
+// logout functionality
+document.addEventListener('DOMContentLoaded', () => {
+    const logoutBtn = document.querySelector('.logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.href = './login.html';
+        });
+    }
+});
