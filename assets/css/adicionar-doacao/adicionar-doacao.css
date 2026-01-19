@@ -398,5 +398,110 @@ input[type="file"] {
         font-size: 1.8rem;
         margin-bottom: 25px;
     }
+
 }
+
+/* When a custom select menu is open, avoid underlying .field hover/pointer interactions
+   so the floating menu can be fully interactive and not visually affected by container hover */
+body.menu-open .field {
+    pointer-events: none;
+    transform: none !important;
+    box-shadow: none !important;
+    background: rgba(255,255,255,0.95) !important;
+    border-color: rgba(0,0,0,0.04) !important;
+}
+
+/* But keep the custom-select wrapper and its button interactive */
+body.menu-open .custom-select,
+body.menu-open .custom-select * {
+    pointer-events: auto !important;
+}
+
+/* Ensure the floating menu appears above everything */
+.custom-select__menu {
+    z-index: 9999;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    overflow: hidden;
+    max-height: 320px;
+    overflow-y: auto;
+    border: 1px solid rgba(0,0,0,0.06);
+}
+
+.custom-select__item {
+    padding: 10px 14px;
+    font-size: 0.95rem;
+    color: var(--text-color);
+    cursor: pointer;
+    transition: background 120ms ease, color 120ms ease;
+}
+
+.custom-select__item[aria-selected='true'] {
+    background: rgba(255,107,53,0.06);
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.custom-select__item:hover {
+    background: rgba(0,0,0,0.03);
+}
+}
+
+/* Custom select component (copied/adapted from homepage styles) */
+.custom-select {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    text-align: left;
+    z-index: 80;
+}
+.custom-select__button {
+    width: 100%;
+    padding: 10px 14px;
+    padding-right: 40px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 0.95rem;
+}
+.custom-select__button:focus { outline: none; box-shadow: 0 6px 18px rgba(78,205,196,0.10); border-color: var(--secondary-color); }
+.custom-select__arrow { width: 14px; height: 14px; opacity: 0.9; transition: transform 180ms ease; }
+.custom-select.open .custom-select__arrow { transform: rotate(-180deg); }
+.custom-select__menu {
+    position: absolute;
+    left: 0; right: 0;
+    margin-top: 8px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.10);
+    max-height: 260px;
+    overflow: auto;
+    z-index: 1000;
+    padding: 6px 6px;
+    display: none;
+}
+.custom-select.open .custom-select__menu { display: block; }
+.custom-select__item {
+    padding: 10px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.custom-select__item:hover, .custom-select__item[aria-selected='true'] {
+    background: linear-gradient(90deg, rgba(255,107,53,0.12), rgba(78,205,196,0.06));
+}
+.custom-select__item[aria-selected='true'] { font-weight: 700; color: var(--primary-color); background: rgba(255,107,53,0.06); }
+
+.custom-select__item:focus { outline: 2px solid rgba(78,205,196,0.18); }
+
+.select-hidden { position: absolute !important; left: -9999px !important; top: auto !important; width: 1px !important; height: 1px !important; overflow: hidden !important; }
 
