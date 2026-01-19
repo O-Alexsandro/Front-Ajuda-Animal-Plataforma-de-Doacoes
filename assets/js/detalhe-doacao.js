@@ -366,15 +366,58 @@
 
             let coords = extractCoords(d);
             if (!coords){
+                function cleanCep(v){ if (!v) return null; const s = String(v).replace(/\D/g,''); return s.length? s : null; }
+                const cepClean = cleanCep(d.cep);
+                console.debug && console.debug('detalhe-doacao: cepClean=', cepClean);
+                let via = null;
+                if (cepClean){
+                    try {
+                        const r = await fetch('https://viacep.com.br/ws/' + cepClean + '/json/');
+                        if (r.ok){
+                            const j = await r.json();
+                            if (!j.erro) via = j;
+                        }
+                    } catch(e){ /* ignore viaCEP failure */ }
+                }
+                console.debug && console.debug('detalhe-doacao: viaCEP=', via);
+
                 const parts = [];
-                if (d.endereco) parts.push(d.endereco);
+                if (via && via.logradouro) parts.push(via.logradouro);
+                if (d.endereco && !via) parts.push(d.endereco);
                 if (d.bairro) parts.push(d.bairro);
+                if (via && via.bairro && parts.indexOf(via.bairro) === -1) parts.push(via.bairro);
                 if (d.cidade) parts.push(d.cidade);
+                if (via && via.localidade && parts.indexOf(via.localidade) === -1) parts.push(via.localidade);
                 if (d.estado) parts.push(d.estado);
-                if (d.cep) parts.push(d.cep);
+                if (cepClean) parts.push(cepClean);
                 if (!parts.length && d.titulo) parts.push(d.titulo + ' ' + (d.cidade||''));
-                const q = parts.join(', ');
-                if (q) coords = await geocodeAddress(q);
+                const baseParts = parts.filter(Boolean);
+                const candidates = [];
+                if (via){
+                    const fullVia = [via.logradouro, via.bairro || d.bairro, via.localidade || d.cidade, via.uf || d.estado, cepClean].filter(Boolean).join(', ');
+                    if (fullVia) candidates.push(fullVia);
+                    const viaBairroLocal = [via.bairro, via.localidade, via.uf, cepClean].filter(Boolean).join(', ');
+                    if (viaBairroLocal) candidates.push(viaBairroLocal);
+                }
+                const fullFromData = [d.endereco, d.bairro, d.cidade, d.estado, cepClean].filter(Boolean).join(', ');
+                if (fullFromData) candidates.push(fullFromData);
+                const bairroCidade = [d.bairro, d.cidade, d.estado, cepClean].filter(Boolean).join(', ');
+                if (bairroCidade) candidates.push(bairroCidade);
+                const cidadeUfCep = [d.cidade, d.estado, cepClean].filter(Boolean).join(', ');
+                if (cidadeUfCep) candidates.push(cidadeUfCep);
+                if (cepClean) candidates.push(cepClean);
+                // last fallback: whatever parts we assembled
+                if (baseParts.length) candidates.push(baseParts.join(', '));
+
+                console.debug && console.debug('detalhe-doacao: geocode candidates=', candidates);
+                for (const cand of candidates){
+                    try {
+                        console.debug && console.debug('detalhe-doacao: trying geocode ->', cand);
+                        coords = await geocodeAddress(cand);
+                        console.debug && console.debug('detalhe-doacao: try result =', coords);
+                        if (coords) break;
+                    } catch(e){ console.debug && console.debug('detalhe-doacao: geocode error', e); }
+                }
             }
 
             if (!coords){
@@ -399,7 +442,9 @@
                 shadowSize: [41, 41]
             });
 
-            const popupText = (d.titulo?('<strong>'+ (d.titulo) +'</strong><br/>'):'') + (d.endereco? d.endereco + (d.cidade?(', '+d.cidade):'') : (coords.display_name||''));
+            function joinAddr(parts){ return parts.filter(Boolean).join(', '); }
+            const placeText = joinAddr([d.endereco, d.bairro, d.cidade, d.estado, d.cep]);
+            const popupText = (d.titulo?('<strong>'+ (d.titulo) +'</strong><br/>'):'') + (placeText? placeText : (coords.display_name||''));
             const marker = L.marker([coords.lat, coords.lng], { icon: defaultIcon }).addTo(map).bindPopup(popupText).openPopup();
 
             // Leaflet sometimes renders with wrong size if container was hidden / styled — force a resize

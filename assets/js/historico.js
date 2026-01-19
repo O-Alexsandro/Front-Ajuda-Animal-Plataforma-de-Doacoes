@@ -326,7 +326,6 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <div style="display:flex;flex-direction:column;gap:8px">
                                     <button class="btn btn-message" type="button" style="background:#FF6B35;color:#fff;border:none">Mensagem</button>
                                     <button class="btn btn-confirm" type="button" style="background:#37b24d;color:#fff;border:none">Confirmar</button>
-                                    <button class="btn danger btn-refuse" type="button">Recusar</button>
                                 </div>
                             </div>
                         </div>`;
@@ -394,21 +393,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                 }
 
-                if (btnRefuse){
-                    btnRefuse.addEventListener('click', async () => {
-                        if (!confirm('Confirma recusar o interesse deste usuário?')) return;
-                        const token = localStorage.getItem('token');
-                        const headers = token ? { 'Authorization': 'Bearer ' + token } : {};
-                        try {
-                            const res = await fetch(`${BACKEND_BASE_URL}/interesse/${encodeURIComponent(interestId)}`, { method: 'DELETE', headers });
-                            if (!res.ok) throw new Error('Falha ao recusar: ' + res.status);
-                            alert('Interesse recusado.');
-                            showInteressesList(donation);
-                        } catch (err){
-                            alert('Erro: ' + err.message);
-                        }
-                    });
-                }
+                
             });
         } catch (err){
             modalContent.innerHTML = `<div class="card">Erro: ${escapeHtml(err.message)}</div><button id="interesses-back-btn" class="btn">Voltar</button>`;

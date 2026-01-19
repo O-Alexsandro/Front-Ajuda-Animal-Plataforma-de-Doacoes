@@ -298,9 +298,10 @@ input[type="file"] {
 }
 
 .create-btn::before {
-    content: '✨';
-    margin-right: 6px;
-    font-size: 1rem;
+    /* removed emoji for a cleaner button */
+    content: '';
+    margin-right: 0;
+    font-size: 0;
 }
 
 .create-btn:hover {
