@@ -50,66 +50,80 @@
                 <!-- Hidden user id (adjust dynamically in future) -->
                 <input type="hidden" name="usuarioId" value="1" />
 
-                <label class="form-row">
-                    <span class="label">Título</span>
-                    <input name="titulo" type="text" required placeholder="Título do item"/>
-                </label>
+                <div id="form-fields">
+                    <div class="field">
+                        <label class="label" for="titulo">Título</label>
+                        <input name="titulo" type="text" id="titulo" required placeholder="Título do item"/>
+                    </div>
 
-                <label class="form-row">
-                    <span class="label">Descrição</span>
-                    <textarea name="descricao" rows="4" required placeholder="Descrição do item"></textarea>
-                </label>
+                    <div class="field">
+                        <label class="label" for="categoria">Categoria</label>
+                        <select name="categoria" id="categoria" required>
+                            <option value="RACAO">Ração</option>
+                            <option value="MEDICAMENTOS">Medicamentos</option>
+                            <option value="ACESSORIOS">Acessórios</option>
+                            <option value="OUTROS" selected>Outros</option>
+                        </select>
+                    </div>
 
-                <label class="form-row">
-                    <span class="label">Categoria</span>
-                    <select name="categoria" required>
-                        <option value="RACAO">Ração</option>
-                        <option value="MEDICAMENTOS">Medicamentos</option>
-                        <option value="ACESSORIOS">Acessórios</option>
-                        <option value="OUTROS" selected>Outros</option>
-                    </select>
-                </label>
+                    <div class="field">
+                        <label class="label" for="estadoConservacao">Estado de conservação</label>
+                        <select name="estadoConservacao" id="estadoConservacao" required>
+                            <option value="NOVO" selected>Novo</option>
+                            <option value="USADO">Usado</option>
+                            <option value="BOAS_CONDICOES">Em boas condições</option>
+                        </select>
+                    </div>
 
-                <label class="form-row">
-                    <span class="label">Estado de conservação</span>
-                    <select name="estadoConservacao" required>
-                        <option value="NOVO" selected>Novo</option>
-                        <option value="USADO">Usado</option>
-                        <option value="BOAS_CONDICOES">Em boas condições</option>
-                    </select>
-                </label>
+                    <div class="field">
+                        <label class="label" for="estado">Estado</label>
+                        <select name="estado" id="estado" required>
+                            <option value="SP" selected>SP</option>
+                            <option value="RJ">RJ</option>
+                            <option value="MG">MG</option>
+                            <option value="BA">BA</option>
+                            <option value="PR">PR</option>
+                            <option value="SC">SC</option>
+                            <option value="RS">RS</option>
+                            <option value="OUTRO">Outro</option>
+                        </select>
+                    </div>
 
-                <label class="form-row">
-                    <span class="label">Estado</span>
-                    <select name="estado" required>
-                        <option value="SP" selected>SP</option>
-                        <option value="RJ">RJ</option>
-                        <option value="MG">MG</option>
-                        <option value="BA">BA</option>
-                        <option value="PR">PR</option>
-                        <option value="SC">SC</option>
-                        <option value="RS">RS</option>
-                        <option value="OUTRO">Outro</option>
-                    </select>
-                </label>
+                    <div class="field">
+                        <label class="label" for="cidade">Cidade</label>
+                        <input name="cidade" type="text" id="cidade" required value="São Paulo" />
+                    </div>
 
-                <label class="form-row">
-                    <span class="label">Cidade</span>
-                    <input name="cidade" type="text" required value="São Paulo" />
-                </label>
+                    <div class="field">
+                        <label class="label" for="bairro">Bairro</label>
+                        <input name="bairro" type="text" id="bairro" required placeholder="Bairro" />
+                    </div>
 
-                <label class="form-row">
-                    <span class="label">Imagem</span>
-                    <input name="imagem" type="file" accept="image/*" required />
-                </label>
+                    <div class="field">
+                        <label class="label" for="cep">CEP</label>
+                        <input name="cep" type="text" id="cep" required placeholder="00000-000" />
+                    </div>
+
+                    <div class="field">
+                        <label class="label" for="descricao">Descrição</label>
+                        <textarea name="descricao" id="descricao" required placeholder="Descrição do item"></textarea>
+                    </div>
+
+                    <div class="field full-width">
+                        <label class="label" for="imagens">Imagens</label>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input name="imagens" type="file" multiple style="display: none;" />
+                            <button type="button" id="add-images-btn">Adicionar Imagens</button>
+                        </div>
+                        <small style="color: #666; margin-top: 5px; display: block;">Clique em "Adicionar Imagens" para selecionar múltiplas fotos</small>
+                    </div>
+                </div>
 
                 <div class="form-actions">
                     <button type="submit" class="create-btn">Criar doação</button>
                 </div>
 
                 <div id="form-message" role="status" aria-live="polite"></div>
-            </form>
-        </div>
 
         <div class="image-preview" id="image-preview" aria-hidden="true"></div>
     </main>
