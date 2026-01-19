@@ -469,20 +469,85 @@ document.addEventListener('DOMContentLoaded', () => {
     function enableEdit(donation){
         // transform modal content into an edit form
         modalContent.innerHTML = buildEditForm(donation);
-        // file preview
-        const fileInput = modalContent.querySelector('input[name="imagem"]');
-        const preview = modalContent.querySelector('.preview-wrap');
-        // show existing image preview if available
-        if (preview) {
-            const existing = resolveImageUrl(donation.imagens && donation.imagens.length > 0 ? donation.imagens[0] : null);
-            if (existing) preview.innerHTML = `<img src="${existing}" class="modal-img" />`;
+        // file preview + remove support
+        const fileInput = modalContent.querySelector('input[name="imagens"]');
+        const preview = modalContent.querySelector('#image-preview') || modalContent.querySelector('.image-preview') || modalContent.querySelector('.preview-wrap');
+        // track removed existing images and newly selected files
+        modalContent._removedImages = new Set();
+        modalContent._newFiles = [];
+
+        function renderExistingPreviews(){
+            if (!preview) return;
+            preview.innerHTML = '';
+            const existingImgs = donation.imagens && donation.imagens.length > 0 ? donation.imagens : (donation.imagem ? [donation.imagem] : []);
+            existingImgs.forEach((src, idx) => {
+                if (modalContent._removedImages.has(src)) return;
+                const url = resolveImageUrl(src);
+                const item = document.createElement('div');
+                item.className = 'preview-item';
+                item.style.position = 'relative';
+                item.innerHTML = `<img src="${url}" class="modal-img" data-src="${escapeHtml(src)}"/>`;
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'remove-image';
+                btn.title = 'Remover imagem';
+                btn.textContent = '×';
+                btn.style.position = 'absolute';
+                btn.style.top = '6px';
+                btn.style.right = '6px';
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    modalContent._removedImages.add(src);
+                    item.remove();
+                });
+                item.appendChild(btn);
+                preview.appendChild(item);
+            });
         }
+
+        function renderNewFilePreviews(){
+            if (!preview) return;
+            // if there are new files, show them after clearing preview
+            if (!modalContent._newFiles || modalContent._newFiles.length === 0) return;
+            preview.innerHTML = '';
+            modalContent._newFiles.forEach((f, i) => {
+                const item = document.createElement('div');
+                item.className = 'preview-item';
+                item.style.position = 'relative';
+                const imgUrl = URL.createObjectURL(f);
+                item.innerHTML = `<img src="${imgUrl}" class="modal-img" data-file-index="${i}"/>`;
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'remove-image';
+                btn.title = 'Remover imagem selecionada';
+                btn.textContent = '×';
+                btn.style.position = 'absolute';
+                btn.style.top = '6px';
+                btn.style.right = '6px';
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    // remove from newFiles array and re-render
+                    modalContent._newFiles.splice(i, 1);
+                    renderNewFilePreviews();
+                });
+                item.appendChild(btn);
+                preview.appendChild(item);
+            });
+        }
+
+        // initial render of existing images
+        renderExistingPreviews();
+
         if (fileInput){
             fileInput.addEventListener('change', () => {
-                const f = fileInput.files[0];
-                if (!f) { preview.innerHTML = ''; return; }
-                preview.innerHTML = `<img src="${URL.createObjectURL(f)}" class="modal-img" />`;
+                const files = Array.from(fileInput.files || []);
+                modalContent._newFiles = files.slice();
+                // when new files selected, we clear removedExisting set (new replaces existing)
+                modalContent._removedImages = new Set();
+                renderNewFilePreviews();
             });
+            // wire add-images button
+            modalContent.querySelector('#add-images-btn')?.addEventListener('click', () => fileInput.click());
         }
         modalContent.querySelector('.cancel-edit')?.addEventListener('click', () => openModal(donation, true));
         modalContent.querySelector('.save-edit')?.addEventListener('click', (ev) => submitEdit(ev, donation));
@@ -491,33 +556,77 @@ document.addEventListener('DOMContentLoaded', () => {
     function buildEditForm(d){
         const imgUrl = resolveImageUrl(d.imagens && d.imagens.length > 0 ? d.imagens[0] : null);
         return `
-            <div style="display:flex; gap:14px; align-items:center">
-                <div class="modal-body">
-                    <div class="form-row"><label>Título <input type="text" name="titulo" value="${escapeHtml(d.titulo||'')}" /></label></div>
-                    <div class="form-row"><label>Descrição <textarea name="descricao">${escapeHtml(d.descricao||'')}</textarea></label></div>
-                    <div class="form-row"><label>Categoria <select name="categoria">
-                        <option ${d.categoria==='RACAO'?'selected':''} value="RACAO">Ração</option>
-                        <option ${d.categoria==='MEDICAMENTOS'?'selected':''} value="MEDICAMENTOS">Medicamentos</option>
-                        <option ${d.categoria==='ACESSORIOS'?'selected':''} value="ACESSORIOS">Acessórios</option>
-                        <option ${d.categoria==='OUTROS'?'selected':''} value="OUTROS">Outros</option>
-                    </select></label></div>
+            <div class="form-card" style="max-width:700px;margin:0;">
+                <h2>Editar Doação</h2>
+                <form id="edit-donation-form" enctype="multipart/form-data">
+                    <input type="hidden" name="usuarioId" value="${escapeHtml(d.usuarioId||localStorage.getItem('userId')||'')}" />
+                    <div id="form-fields">
+                        <div class="field">
+                            <label class="label">Título</label>
+                            <input name="titulo" type="text" value="${escapeHtml(d.titulo||'')}" />
+                        </div>
 
-                    <div class="form-row"><label>Estado de conservação <select name="estadoConservacao">
-                        <option ${d.estadoConservacao==='NOVO'?'selected':''} value="NOVO">Novo</option>
-                        <option ${d.estadoConservacao==='USADO'?'selected':''} value="USADO">Usado</option>
-                        <option ${d.estadoConservacao==='BOAS_CONDICOES'?'selected':''} value="BOAS_CONDICOES">Em boas condições</option>
-                    </select></label></div>
+                        <div class="field">
+                            <label class="label">Categoria</label>
+                            <select name="categoria">
+                                <option ${d.categoria==='RACAO'?'selected':''} value="RACAO">Ração</option>
+                                <option ${d.categoria==='MEDICAMENTOS'?'selected':''} value="MEDICAMENTOS">Medicamentos</option>
+                                <option ${d.categoria==='ACESSORIOS'?'selected':''} value="ACESSORIOS">Acessórios</option>
+                                <option ${d.categoria==='OUTROS'?'selected':''} value="OUTROS">Outros</option>
+                            </select>
+                        </div>
 
-                    <div class="form-row"><label>Estado <input type="text" name="estado" value="${escapeHtml(d.estado||'')}" /></label></div>
-                    <div class="form-row"><label>Cidade <input type="text" name="cidade" value="${escapeHtml(d.cidade||'')}" /></label></div>
-                    <div class="form-row"><label>Imagem (opcional) <input type="file" name="imagem" accept="image/*" /></label></div>
-                    <div class="preview-wrap">${imgUrl ? `<img src="${imgUrl}" class="modal-img" />` : ''}</div>
+                        <div class="field">
+                            <label class="label">Estado de conservação</label>
+                            <select name="estadoConservacao">
+                                <option ${d.estadoConservacao==='NOVO'?'selected':''} value="NOVO">Novo</option>
+                                <option ${d.estadoConservacao==='USADO'?'selected':''} value="USADO">Usado</option>
+                                <option ${d.estadoConservacao==='BOAS_CONDICOES'?'selected':''} value="BOAS_CONDICOES">Em boas condições</option>
+                            </select>
+                        </div>
 
-                    <div class="modal-actions">
-                        <button class="btn cancel-edit" type="button">Cancelar</button>
-                        <button class="btn primary save-edit" type="button">Salvar</button>
+                        <div class="field">
+                            <label class="label">Estado</label>
+                            <input name="estado" type="text" value="${escapeHtml(d.estado||'')}" />
+                        </div>
+
+                        <div class="field">
+                            <label class="label">Cidade</label>
+                            <input name="cidade" type="text" value="${escapeHtml(d.cidade||'')}" />
+                        </div>
+
+                        <div class="field">
+                            <label class="label">Bairro</label>
+                            <input name="bairro" type="text" value="${escapeHtml(d.bairro||'')}" />
+                        </div>
+
+                        <div class="field">
+                            <label class="label">CEP</label>
+                            <input name="cep" type="text" value="${escapeHtml(d.cep||'')}" />
+                        </div>
+
+                        <div class="field">
+                            <label class="label">Descrição</label>
+                            <textarea name="descricao">${escapeHtml(d.descricao||'')}</textarea>
+                        </div>
+
+                        <div class="field full-width">
+                            <label class="label">Imagens</label>
+                            <div style="display:flex;align-items:center;gap:10px;">
+                                <input name="imagens" type="file" multiple style="display:none;" />
+                                <button type="button" id="add-images-btn">Adicionar Imagens</button>
+                            </div>
+                            <small style="color:#666;margin-top:5px;display:block;">Clique em "Adicionar Imagens" para selecionar múltiplas fotos (substitui as atuais)</small>
+                        </div>
+
+                        <div class="preview-wrap" style="margin-top:10px;">${imgUrl ? (d.imagens && d.imagens.length > 1 ? d.imagens.map(u=>`<img src="${resolveImageUrl(u)}" class="modal-img edit-preview" />`).join('') : `<img src="${imgUrl}" class="modal-img edit-preview" />`) : ''}</div>
+
+                        <div class="form-actions" style="margin-top:12px;display:flex;justify-content:flex-end;gap:12px;">
+                            <button class="btn cancel-edit" type="button">Cancelar</button>
+                            <button class="btn primary save-edit" type="button">Salvar</button>
+                        </div>
                     </div>
-                </div>
+                </form>
             </div>
         `;
     }
@@ -528,14 +637,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function submitEdit(ev, donation){
         ev.preventDefault();
-        const formEl = modalContent.querySelector('div.modal-body');
+        // form body is inside our modal markup; select the form container
+        const formEl = modalContent.querySelector('div.modal-body') || modalContent.querySelector('form#edit-donation-form') || modalContent;
         const titulo = formEl.querySelector('input[name="titulo"]').value;
         const descricao = formEl.querySelector('textarea[name="descricao"]').value;
         const categoria = formEl.querySelector('select[name="categoria"]').value;
         const estadoConservacao = formEl.querySelector('select[name="estadoConservacao"]').value;
         const estado = formEl.querySelector('input[name="estado"]').value;
         const cidade = formEl.querySelector('input[name="cidade"]').value;
-        const imagemInput = formEl.querySelector('input[name="imagem"]');
+        const bairro = formEl.querySelector('input[name="bairro"]').value;
+        const cep = formEl.querySelector('input[name="cep"]').value;
+        const imagensInput = formEl.querySelector('input[name="imagens"]');
+        const removedSet = modalContent._removedImages || new Set();
+        const newFiles = modalContent._newFiles || [];
 
         // determine id and usuarioId (required)
         const idValue = donation.id || donation._id || donation.codigo || donation.idDoacao || '';
@@ -557,10 +671,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if (estadoConservacao && String(estadoConservacao).trim()) fd.append('estadoConservacao', estadoConservacao);
         if (estado && String(estado).trim()) fd.append('estado', estado);
         if (cidade && String(cidade).trim()) fd.append('cidade', cidade);
-        if (imagemInput && imagemInput.files && imagemInput.files[0]) fd.append('imagem', imagemInput.files[0]);
-        else if (donation && donation.imagem) {
-            // no new file selected — include existing image reference so backend can keep it
-            fd.append('imagem', donation.imagem);
+        if (bairro && String(bairro).trim()) fd.append('bairro', bairro);
+        if (cep && String(cep).trim()) fd.append('cep', cep);
+        // handle multiple images: if new files provided (selected in modal), append them; otherwise preserve existing references except removed ones
+        if (newFiles && newFiles.length > 0) {
+            for (let i = 0; i < newFiles.length; i++) {
+                fd.append('imagens', newFiles[i]);
+            }
+        } else if (donation && donation.imagens && donation.imagens.length > 0) {
+            donation.imagens.forEach(imgRef => {
+                if (!removedSet.has(imgRef)) fd.append('imagens', imgRef);
+            });
+        } else if (donation && donation.imagem) {
+            if (!removedSet.has(donation.imagem)) fd.append('imagens', donation.imagem);
         }
 
         const token = localStorage.getItem('token');

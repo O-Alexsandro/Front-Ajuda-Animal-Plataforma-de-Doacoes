@@ -1,3 +1,64 @@
+function ensurePopupContainer() {
+    let container = document.getElementById('popup-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'popup-container';
+        Object.assign(container.style, {
+            position: 'fixed',
+            top: '20px',
+            right: '20px',
+            zIndex: 99999,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '10px',
+            pointerEvents: 'none'
+        });
+        document.body.appendChild(container);
+    }
+    return container;
+}
+
+function showPopup(message, type = 'info', timeout = 4000) {
+    const container = ensurePopupContainer();
+    const box = document.createElement('div');
+    box.className = 'popup-message ' + type;
+    Object.assign(box.style, {
+        pointerEvents: 'auto',
+        minWidth: '260px',
+        maxWidth: '360px',
+        padding: '12px 14px',
+        borderRadius: '8px',
+        color: '#fff',
+        boxShadow: '0 6px 18px rgba(0,0,0,0.12)',
+        opacity: '0',
+        transform: 'translateY(-6px)',
+        transition: 'opacity 220ms ease, transform 220ms ease',
+        fontFamily: 'sans-serif',
+        fontSize: '14px'
+    });
+
+    if (type === 'success') box.style.background = '#2e7d32';
+    else if (type === 'error') box.style.background = '#c62828';
+    else box.style.background = '#1565c0';
+
+    box.textContent = message;
+    container.appendChild(box);
+
+    requestAnimationFrame(() => {
+        box.style.opacity = '1';
+        box.style.transform = 'translateY(0)';
+    });
+
+    const remove = () => {
+        box.style.opacity = '0';
+        box.style.transform = 'translateY(-6px)';
+        setTimeout(() => { try { container.removeChild(box); } catch(e){} }, 260);
+    };
+
+    const timer = setTimeout(remove, timeout);
+    box.addEventListener('click', () => { clearTimeout(timer); remove(); });
+}
+
 const formLogin = document.getElementById('form-login');
 
 formLogin.addEventListener('submit', async (event) => {
@@ -64,6 +125,6 @@ formLogin.addEventListener('submit', async (event) => {
         window.location.href = './homepage.html';
 
     } catch (error) {
-        alert(error.message);
+        showPopup(error.message || 'Erro no login', 'error');
     }
 });

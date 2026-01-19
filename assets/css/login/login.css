@@ -126,6 +126,18 @@ body {
     box-shadow: 0 0 10px rgba(255, 107, 53, 0.3);
 }
 
+.forgot-link {
+    width: 90%;
+    margin: 8px auto 0;
+    text-align: right;
+}
+
+.forgot-link a {
+    font-size: 0.9rem;
+    color: #FF6B35;
+    font-weight: 300;
+}
+
 #button {
     display: flex;
     justify-content: center;

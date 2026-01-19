@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recuperar Senha</title>
+    <link rel="stylesheet" href="/assets/css/login/login.css">
+</head>
+
+<body>
+    <section id="header-login">
+        <form method="post" id="form-login">
+            <h2>Recuperar Senha</h2>
+            <h3 class="description">Redefina sua senha informando seu nome, e-mail e uma nova senha</h3>
+            <div id="label-input">
+                <label class="label" for="nome">Nome completo:</label>
+                <input class="input" type="text" id="nome" name="nome" placeholder="Seu nome completo" required>
+
+                <label class="label" for="email">Email:</label>
+                <input class="input" type="email" id="email" name="email" placeholder="seu@email.com" required>
+
+                <label class="label" for="senha">Nova senha:</label>
+                <input class="input" type="password" id="senha" name="senha" placeholder="digite a nova senha" required>
+            </div>
+
+            <div id="button">
+                <button type="submit">Redefinir senha</button>
+            </div>
+            <h3 class="final">Lembrou a senha? <a href="./login.html">Entrar</a></h3>
+        </form>
+    </section>
+
+    <script src="/assets/js/esqueci-senha.js"></script>
+    <script src="/assets/js/config.js"></script>
+</body>
+
+</html>
