@@ -204,6 +204,39 @@ body {
     overflow-y: auto;
 }
 
+/* Interesses list styling (modal) */
+.interesses-list{ box-sizing:border-box; width:100%; max-height:80vh; overflow:auto; padding:12px; background:#fff; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.06); }
+.interesses-header{ display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:10px }
+.interesses-header h3{ margin:0; font-size:1.1rem }
+.interesse-item{ width:100%; margin-bottom:12px; padding:12px; border-radius:8px; background:#fff; border:1px solid rgba(0,0,0,0.04); box-shadow: 0 6px 12px rgba(0,0,0,0.03); }
+.interesse-main{ display:flex; gap:12px; align-items:flex-start }
+.interesse-info{ flex:1; min-width:0 }
+.interesse-info .title{ font-weight:700; font-size:1rem; margin-bottom:6px }
+.interesse-info .description{ color:#666; font-size:0.95rem; margin-bottom:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+.interesse-info .interesse-comment{ color:#444; margin-bottom:6px }
+.interesse-actions{ display:flex; flex-direction:column; gap:8px }
+.interesse-actions .btn{ padding:8px 12px; border-radius:8px }
+.interesse-actions .btn-message{ background:#FF6B35; color:#fff; border:none }
+.interesse-actions .btn-confirm{ background:#37b24d; color:#fff; border:none }
+.interesse-status .status-badge{ display:inline-block }
+
+@media(max-width:480px){
+    .modal-card{ width: calc(100% - 12px); margin:8px; border-radius:12px 12px 0 0; padding:12px }
+    .interesse-actions{ flex-direction:row }
+    .interesse-actions .btn{ flex:1 }
+}
+
+/* Mobile modal: bottom-sheet behavior */
+@media (max-width:480px){
+    .modal{ align-items: flex-end; padding: 0; }
+    .modal-backdrop{ background: rgba(0,0,0,0.5); }
+    .modal-card{ width:100%; max-width:100%; margin:0; border-radius:12px 12px 0 0; padding:14px; box-shadow: 0 -12px 30px rgba(0,0,0,0.12); max-height:85vh; overflow:auto; }
+    .modal-card .modal-card-inner{ padding-bottom: 12px }
+    .interesses-list{ max-height: calc(85vh - 72px); overflow:auto; padding:10px }
+    .interesse-item{ margin-bottom:10px }
+    .modal .modal-close{ position: absolute; right: 12px; top: 8px; z-index: 12 }
+}
+
 /* ensure inner form-card can't exceed modal width and is centered */
 .modal-card .form-card,
 .modal-card #edit-donation-form,
@@ -490,4 +523,19 @@ input[type="file"] { display: none; }
     .field.full-width { grid-column: span 1; }
     .form-card { padding: 24px; margin: 20px; max-width: none; }
     .form-card h2 { font-size: 1.8rem; margin-bottom: 25px; }
+}
+
+/* Mobile tweaks: max-width: 480px — added to improve small-screen layout without changing desktop */
+@media (max-width: 480px) {
+    body { font-size: 15px; }
+    html, body { overflow-x: hidden; }
+    #header { padding: 8px 12px; box-sizing: border-box; width: 100%; overflow: hidden; }
+    #header > img { width: 56px; height: 56px; margin-left: 12px; max-width:56px; }
+    #header-buttons { margin-right: 12px; gap: 8px; }
+    .history { padding: 12px; }
+    .history-inner { width: 100%; padding: 0; }
+    .cards-list { grid-template-columns: 1fr !important; }
+    .card img { height: auto; }
+    .modal-card { width: calc(100% - 24px); margin: 12px; }
+    .form-card { padding: 18px; }
 }

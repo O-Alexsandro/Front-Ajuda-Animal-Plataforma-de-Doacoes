@@ -70,3 +70,22 @@ body{font-family:Inter,system-ui,Arial,sans-serif;background:var(--bg);color:#1f
 /* small screens */
 @media(max-width:900px){.chat-inner{flex-direction:column}.contacts-panel{width:100%}.conversation-panel{width:100%}}
 
+/* Mobile tweaks: max-width: 480px — added to improve small-screen layout without changing desktop */
+@media (max-width: 480px) {
+	body { font-size: 15px; }
+		html, body { overflow-x: hidden; }
+	#header { padding: 8px 12px; }
+		#header { box-sizing: border-box; width: 100%; overflow: hidden; }
+	#container { padding: 0 12px; }
+		#header > img { max-width: 56px; height: auto; margin-left: 8px; }
+		#header-buttons { margin-right: 12px; gap: 8px; }
+	.chat-inner { gap: 12px; flex-direction: column; }
+	.contacts-panel, .conversation-panel { width: 100% !important; }
+	.contacts-panel { padding: 10px; }
+	.contacts-list { max-height: 40vh; }
+	.contact-avatar { width: 40px; height: 40px; }
+	.messages { padding: 12px; }
+	.message-form input { padding: 10px; }
+	.btn { width: 100%; padding: 12px; }
+}
+

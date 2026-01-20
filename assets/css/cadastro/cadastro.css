@@ -339,3 +339,15 @@ a:hover {
     }
 }
 
+/* Mobile tweaks: max-width: 480px — added to improve small-screen layout without changing desktop */
+@media (max-width: 480px) {
+    body { font-size: 15px; }
+    html, body { overflow-x: hidden; }
+    #header { padding: 8px 12px; box-sizing: border-box; width: 100%; overflow: hidden; }
+    #header > img { margin-left: 12px; width:56px; height:auto; max-width:56px; }
+    #header > button { margin-right: 12px; width: auto; }
+    #form-login { padding: 16px; width: 100%; margin: 12px 6px; }
+    #form-login > h2 { font-size: 1.4rem; }
+    #label-input { grid-template-columns: 1fr; gap: 12px; }
+}
+

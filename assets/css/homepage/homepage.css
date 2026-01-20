@@ -504,4 +504,20 @@ body {
     .cards-inner { grid-template-columns: 1fr; }
 }
 
+/* Mobile tweaks: max-width: 480px — added to improve small-screen layout without changing desktop */
+@media (max-width: 480px) {
+    body { font-size: 15px; }
+    html, body { overflow-x: hidden; }
+    #header { padding: 8px 12px; box-sizing: border-box; width: 100%; overflow: hidden; }
+    #header > img { width: 56px; height: 56px; margin-left: 12px; max-width:56px; }
+    #header-buttons { margin-right: 12px; gap: 8px; }
+    .hero { padding: 12px; }
+    .hero-inner { gap: 10px; }
+    .search-wrap { max-width: 100%; padding: 8px; }
+    .cards-wrap { padding: 12px; }
+    .cards-inner { grid-template-columns: 1fr !important; gap: 12px; }
+    .card-media .card-img { height: auto; }
+    .btn-ghost, .btn-ghost:hover { width: 100%; }
+}
+
 /* Details page styles moved to /assets/css/doacao-detalhes.css */

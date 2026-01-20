@@ -212,3 +212,23 @@ body {
 
 .carousel-btn.prev { left: 10px; }
 .carousel-btn.next { right: 10px; }
+
+/* Mobile tweaks: max-width: 480px — added to improve small-screen layout without changing desktop */
+@media (max-width: 480px) {
+    :root { --base-spacing: 12px; }
+    body { font-size: 15px; padding: 0; }
+    html, body { overflow-x: hidden; }
+    #header { padding: 10px 14px; }
+    #header { box-sizing: border-box; width: 100%; overflow: hidden; }
+    #header > img { width: 56px; height: 56px; margin-left: 12px; }
+    #header-buttons { margin-right: 12px; gap: 10px; }
+    .nav-item { gap: 6px; }
+    .detail-page, .detail-inner, .detail-left, .detail-right { padding-left: 12px; padding-right: 12px; }
+    .detail-inner { grid-template-columns: 1fr; gap: 14px; }
+    .detail-main-img, .detail-card, .card-media, .preview-wrap img { max-width: 100%; height: auto; }
+    .btn-primary { width: 100%; padding: 12px; }
+    .tag-list { gap: 8px; }
+    .owner-avatar { width: 48px; height: 48px; }
+    .detail-title { font-size: 1.2rem; }
+    .sidebar { display: none; }
+}

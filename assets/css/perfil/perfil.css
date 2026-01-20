@@ -146,3 +146,17 @@ body {
     .avatar-row { flex-direction:column; gap:14px; }
     .profile-inner { width:100%; }
 }
+
+/* Mobile tweaks: max-width: 480px — added to improve small-screen layout without changing desktop */
+@media (max-width: 480px) {
+    body { font-size: 15px; }
+    html, body { overflow-x: hidden; }
+    #header { padding: 8px 12px; box-sizing: border-box; width: 100%; overflow: hidden; }
+    #header > img { width: 56px; height: 56px; margin-left: 12px; max-width:56px; }
+    .profile-page { padding: 12px; }
+    .profile-inner { max-width: 100%; padding: 0; }
+    .avatar-circle { width: 72px; height: 72px; }
+    .field input, .field textarea { padding: 10px; }
+    .btn-primary { width: 100%; padding: 12px; }
+    #header-buttons { margin-right: 12px; gap: 8px; }
+}

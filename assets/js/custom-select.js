@@ -65,15 +65,28 @@
         // append menu to body so it doesn't get clipped or interfere with field hover
         document.body.appendChild(menu);
 
+        let __isMobile = document.body.classList.contains('is-mobile');
         function positionMenu(){
             const rect = button.getBoundingClientRect();
-            // make the floating menu match the button width so it doesn't become too wide
-            menu.style.width = rect.width + 'px';
-            // ensure it never exceeds viewport width
-            menu.style.maxWidth = Math.round(window.innerWidth * 0.9) + 'px';
             menu.style.boxSizing = 'border-box';
-            menu.style.left = rect.left + window.scrollX + 'px';
-            menu.style.top = rect.bottom + window.scrollY + 'px';
+            // mobile: make menu a fixed bottom sheet-like panel
+            if(__isMobile){
+                menu.style.position = 'fixed';
+                menu.style.left = Math.round(window.innerWidth * 0.05) + 'px';
+                menu.style.width = Math.round(window.innerWidth * 0.9) + 'px';
+                menu.style.bottom = '10px';
+                menu.style.top = 'auto';
+                menu.style.maxHeight = Math.round(window.innerHeight * 0.6) + 'px';
+            } else {
+                // desktop: position under the button as before
+                menu.style.position = 'absolute';
+                menu.style.width = rect.width + 'px';
+                menu.style.maxWidth = Math.round(window.innerWidth * 0.9) + 'px';
+                menu.style.left = rect.left + window.scrollX + 'px';
+                menu.style.top = rect.bottom + window.scrollY + 'px';
+                menu.style.bottom = 'auto';
+                menu.style.maxHeight = Math.round(window.innerHeight * 0.5) + 'px';
+            }
         }
 
         function open(){
@@ -107,6 +120,8 @@
             document.removeEventListener('keydown', onDocKey);
             window.removeEventListener('resize', positionMenu);
             window.removeEventListener('scroll', positionMenu, true);
+            // remove mobile listener when closing
+            try{ window.removeEventListener('mobilechange', onMobileChange); }catch(e){}
             button.focus();
         }
         function toggle(){ wrapper.classList.contains('open') ? close() : open(); }
@@ -159,6 +174,10 @@
                 labelSpan.textContent = items[sel].textContent;
             }
         });
+
+        // listen for mobile change events so we can switch positioning behavior
+        function onMobileChange(e){ __isMobile = !!(e && e.detail && e.detail.isMobile); positionMenu(); }
+        window.addEventListener('mobilechange', onMobileChange);
 
         return {wrapper, open, close};
     }

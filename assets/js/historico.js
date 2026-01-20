@@ -296,10 +296,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await res.json();
 
             // container uses full available width of modal, with max-height and scroll
-            // set width to 164% as requested to expand the list inside the modal
-            let html = `<div class="interesses-list" style="width:215%;box-sizing:border-box;max-height:80vh;overflow:auto;margin:0;padding:12px;background:#fff;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,0.08);">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-                    <h3 style="margin:0">Interessados</h3>
+            let html = `<div class="interesses-list">
+                <div class="interesses-header">
+                    <h3>Interessados</h3>
                     <div><button id="interesses-back-btn" class="btn">Voltar</button></div>
                 </div>`;
             if (!data || !data.length) html += '<div class="card">Nenhum interessado encontrado.</div>';
@@ -315,38 +314,29 @@ document.addEventListener('DOMContentLoaded', () => {
                     const idUsuario = u?.id || u?.usuarioId || u?._id || u?.codigo || item.usuarioId || item.idUsuario || '';
 
                     html += `
-                        <div class="card interesse-item" data-interest-id="${escapeHtml(interestId)}" data-user-id="${escapeHtml(idUsuario)}" data-user-name="${escapeHtml(nome)}" data-index="${idx}" style="width:100%;margin-bottom:10px;padding:12px;border-radius:8px;">
-                            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
-                                <div style="flex:1;min-width:0">
-                                    <div class="title" style="font-weight:600">${escapeHtml(nome)}</div>
-                                    <div class="description" style="color:#666;font-size:0.95rem">${escapeHtml(email)}${telefone? ' • ' + escapeHtml(telefone):''}</div>
-                                    <div style="margin-top:6px;color:#444">${escapeHtml(comentario)}</div>
-                                    ${status? `<div style="margin-top:6px"><span class="status-badge ${String(status).toLowerCase()}">${escapeHtml(status)}</span></div>`: ''}
+                        <div class="interesse-item" data-interest-id="${escapeHtml(interestId)}" data-user-id="${escapeHtml(idUsuario)}" data-user-name="${escapeHtml(nome)}" data-index="${idx}">
+                            <div class="interesse-main">
+                                <div class="interesse-info">
+                                    <div class="title">${escapeHtml(nome)}</div>
+                                    <div class="description">${escapeHtml(email)}${telefone? ' • ' + escapeHtml(telefone):''}</div>
+                                    <div class="interesse-comment">${escapeHtml(comentario)}</div>
+                                    ${status? `<div class="interesse-status"><span class="status-badge ${String(status).toLowerCase()}">${escapeHtml(status)}</span></div>`: ''}
                                 </div>
-                                <div style="display:flex;flex-direction:column;gap:8px">
-                                    <button class="btn btn-message" type="button" style="background:#FF6B35;color:#fff;border:none">Mensagem</button>
-                                    <button class="btn btn-confirm" type="button" style="background:#37b24d;color:#fff;border:none">Confirmar</button>
+                                <div class="interesse-actions">
+                                    <button class="btn btn-message" type="button">Mensagem</button>
+                                    <button class="btn btn-confirm" type="button">Confirmar</button>
                                 </div>
                             </div>
                         </div>`;
                 });
             }
             html += '</div>';
-            // ensure modalContent uses flex so the list can expand to fill available space
-            modalContent.style.display = 'flex';
-            modalContent.style.flexDirection = 'row';
-            modalContent.style.justifyContent = 'center';
-            modalContent.style.alignItems = 'stretch';
-
-            // layout: left column is the list (60% width), right column fills remaining space
-            modalContent.innerHTML = `
-                <div style="display:flex; width:100%; gap:12px;">
-                    <div style="flex:0 0 60%;">
-                        ${html}
-                    </div>
-                    <div style="flex:1"></div>
-                </div>
-            `;
+            // render list full-width inside modal
+            modalContent.style.display = '';
+            modalContent.style.flexDirection = '';
+            modalContent.style.justifyContent = '';
+            modalContent.style.alignItems = '';
+            modalContent.innerHTML = html;
 
             // attach back listener
             document.getElementById('interesses-back-btn')?.addEventListener('click', () => openModal(donation, true, false));

@@ -200,3 +200,16 @@ a:hover {
         font-size: 1rem;
     }
 }
+
+/* Mobile tweaks: max-width: 480px — added to improve small-screen layout without changing desktop */
+@media (max-width: 480px) {
+    body { font-size: 15px; }
+    html, body { overflow-x: hidden; }
+    #header { padding: 8px 12px; box-sizing: border-box; width: 100%; overflow: hidden; }
+    #header > img { margin-left: 12px; width:56px; height:auto; max-width:56px; }
+    #header > button { display: none; margin-right: 12px; }
+    #form-login { width: 94%; padding: 16px; position: static; transform: none; margin: 24px auto; }
+    #form-login > h2 { font-size: 1.4rem; }
+    #label-input { width: 100%; }
+    #button > button { width: 100%; }
+}

@@ -173,7 +173,8 @@ window.loadedData = sampleData.slice(); // fallback
 // Fetch donations from backend and render (falls back to sampleData)
 async function fetchDonations() {
   try {
-    const res = await fetch('http://localhost:8080/doacoes/disponiveis');
+    const _base = (typeof BACKEND_BASE_URL !== 'undefined') ? String(BACKEND_BASE_URL).replace(/\/+$/,'') : '';
+    const res = await fetch(_base + '/doacoes/disponiveis');
     if (!res.ok) throw new Error('Network response not ok: ' + res.status);
     const data = await res.json();
 

@@ -402,6 +402,20 @@ input[type="file"] {
 
 }
 
+/* Mobile tweaks: max-width: 480px — added to improve small-screen layout without changing desktop */
+@media (max-width: 480px) {
+    body { font-size: 15px; }
+    html, body { overflow-x: hidden; }
+    #header { padding: 8px 12px; box-sizing: border-box; width: 100%; overflow: hidden; }
+    #header > img { width: 56px; height: 56px; margin-left: 12px; max-width:56px; }
+    #header-buttons { margin-right: 12px; gap: 8px; }
+    .add-donation { padding: 12px; }
+    .form-card { padding: 18px; max-width: 100%; margin: 0 8px; }
+    #form-fields { grid-template-columns: 1fr !important; gap: 12px; }
+    .field { padding: 12px; }
+    .create-btn { width: 100%; padding: 12px; }
+}
+
 /* When a custom select menu is open, avoid underlying .field hover/pointer interactions
    so the floating menu can be fully interactive and not visually affected by container hover */
 body.menu-open .field {

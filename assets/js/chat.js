@@ -1,11 +1,54 @@
 const BACKEND_WS = (function(){
-  try{ const u = new URL(BACKEND_BASE_URL); return (u.protocol==='https:'?'wss:':'ws:') + '//' + u.host + '/ws/chat'; }catch(e){ return 'ws://localhost:8080/ws/chat' }
+  try{ const u = new URL(BACKEND_BASE_URL); return (u.protocol==='https:'?'wss:':'ws:') + '//' + u.host + '/ws/chat'; }
+  catch(e){ return (typeof window !== 'undefined' && window.BACKEND_WS_URL) ? window.BACKEND_WS_URL : 'ws://localhost:8080/ws/chat'; }
 })();
 
 let socket = null;
 let socketAvailable = false;
 let currentConversation = null; // {id, withUserId, donationId}
 const currentUserId = localStorage.getItem('userId') || null;
+
+// Mobile UI helpers for chat: toggles contacts/conversation panels and adds a small "Voltar" button
+function ensureShowContactsButton(){
+  if(document.getElementById('show-contacts-btn')) return;
+  const convHeader = document.querySelector('.conv-header');
+  if(!convHeader) return;
+  const btn = document.createElement('button');
+  btn.id = 'show-contacts-btn';
+  btn.type = 'button';
+  btn.textContent = 'Voltar';
+  btn.style.marginRight = '8px';
+  btn.style.display = 'none';
+  btn.className = 'nav-item';
+  btn.addEventListener('click', ()=>{ // show contacts panel
+    const contacts = document.querySelector('.contacts-panel');
+    const conv = document.querySelector('.conversation-panel');
+    if(contacts) contacts.style.display = '';
+    if(conv) conv.style.display = 'none';
+    btn.style.display = 'none';
+  });
+  convHeader.insertBefore(btn, convHeader.firstChild);
+}
+
+function setChatMobile(isMobile){
+  const contacts = document.querySelector('.contacts-panel');
+  const conv = document.querySelector('.conversation-panel');
+  if(!contacts || !conv) return;
+  if(isMobile){
+    // On mobile, show contacts list by default. When the user selects a conversation,
+    // the click handler will hide the contacts and show the conversation. This prevents
+    // the contacts from being hidden unexpectedly on initial load.
+    contacts.style.display = '';
+    conv.style.display = currentConversation ? 'block' : 'none';
+    ensureShowContactsButton();
+    const b = document.getElementById('show-contacts-btn'); if(b) b.style.display = currentConversation ? '' : 'none';
+  } else {
+    // desktop restore: show both panels
+    contacts.style.display = '';
+    conv.style.display = '';
+    const b = document.getElementById('show-contacts-btn'); if(b) b.style.display = 'none';
+  }
+}
 
 // Deterministic avatar color for a given string (id or name)
 function colorForString(s){
@@ -282,6 +325,16 @@ function renderContacts(list){
       try { if (socket && socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ type: 'read', conversationId: c.id })); } catch(e){}
       // request history
       try { socket.send(JSON.stringify({type:'history', conversationId:c.id})); } catch(e){}
+      // on small screens, hide contacts panel to show conversation full-width
+      try{
+        if(document.body.classList.contains('is-mobile')){
+          const contactsEl = document.querySelector('.contacts-panel');
+          const convEl = document.querySelector('.conversation-panel');
+          if(contactsEl) contactsEl.style.display = 'none';
+          if(convEl) convEl.style.display = 'block';
+          const b = document.getElementById('show-contacts-btn'); if(b) b.style.display = '';
+        }
+      }catch(e){}
     });
     wrap.appendChild(it);
     // animate contact entry
@@ -390,6 +443,11 @@ document.addEventListener('DOMContentLoaded', ()=>{
     const cont = document.getElementById('container');
     if (header && cont){ const h = header.offsetHeight || 0; cont.style.height = `calc(100vh - ${h}px)`; document.documentElement.style.setProperty('--header-height', h + 'px'); }
   }); }catch(e){}
+  // Initialize chat mobile layout and listen for changes from responsive.js
+  try{
+    setChatMobile(document.body.classList.contains('is-mobile'));
+    window.addEventListener('mobilechange', (ev)=>{ setChatMobile(!!(ev && ev.detail && ev.detail.isMobile)); });
+  }catch(e){}
   // If another page requested to open a conversation, process it now (WS -> HTTP -> local fallback)
   (async function(){
     try {
